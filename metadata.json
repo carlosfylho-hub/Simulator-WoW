@@ -1,0 +1,6 @@
+{
+  "name": "WoW Midnight Decision Engine - S2",
+  "description": "Calculadora e motor de decisão estratégica para World of Warcraft: Midnight (Patch 12.1.5). Protocolo de substituição G0-G8, Imersões de Kindo'jan, Folio Ômnico e progressão sem raide.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
