@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { 
-  ArrowLeftRight, 
-  TrendingUp, 
-  TrendingDown, 
-  Zap, 
-  ShieldAlert, 
-  ShieldCheck, 
-  CheckCircle2, 
+import {
+  ArrowLeftRight,
+  TrendingUp,
+  TrendingDown,
+  Zap,
+  ShieldAlert,
+  ShieldCheck,
+  CheckCircle2,
   AlertTriangle,
   Sparkles,
   Layers,
@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { ParsedSimcProfile, WowItem, ItemSlot, ActiveSpec, ParsedSimcItem, CombatScenario } from '../types/wow';
 import { getItemById, WOW_ITEMS, getItemIconUrl, getItemQualityBorder, getItemsBySlot } from '../data/items';
+import { ilvlDosBonusIds } from '../engine/simcCompare';
 import { SPEC_PROFILES } from '../data/specs';
 import { COMBAT_SCENARIOS, COMBAT_SCENARIOS_LIST } from '../data/scenarios';
 import { useItemTooltip } from '../context/TooltipContext';
@@ -111,16 +112,19 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
     ORDERED_SLOTS.forEach(({ slot }) => {
       const eq = profile.equipped[slot];
       if (eq) {
+        // Use the real imported ilvl (from the export or from the bonus_id),
+        // never the catalog default, so "what you have" reflects the character.
+        const ilvlReal = eq.ilvl ?? ilvlDosBonusIds(eq.bonusIds);
         const catalogItem = getItemById(eq.id);
         if (catalogItem) {
-          map[slot] = catalogItem;
+          map[slot] = ilvlReal ? { ...catalogItem, ilvl: ilvlReal } : catalogItem;
         } else {
           map[slot] = {
             id: eq.id,
             namePt: eq.name || `Item ${eq.id}`,
             nameEn: eq.name || `Item ${eq.id}`,
             slot: slot,
-            ilvl: eq.ilvl || 321,
+            ilvl: ilvlReal || 321,
             source: 'delve',
             sourceDetail: 'Importado SimC'
           };
@@ -268,17 +272,17 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
         if (it.stats.mastery) totalMastery += it.stats.mastery;
         if (it.stats.versatility) totalVers += it.stats.versatility;
       }
-      
+
       // Robust tier detection
       if (it.isTier || TIER_ITEM_IDS.has(it.id)) {
         tierCount++;
       }
-      
+
       // Robust embellishments detection
       if (it.embellished || EMBELLISHED_ITEM_IDS.has(it.id)) {
         embellishmentsCount++;
       }
-      
+
       if (it.id === 271092 || it.id === 271874) hasVenomCursedWeapon = true;
       if (it.id === 273649 || it.id === 273796 || it.id === 250215) onUseTrinketCount++;
     });
@@ -295,10 +299,10 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
     // Simulation DPS formula calibrated for 12.1.5 (Patch 12.1.5 benchmark: 1.5M for 308 up to 2.2M for 344)
     const ilvlDeltaFactor = Math.pow(avgIlvl / 321, 2.8);
     const primaryFactor = 1 + ((totalInt - 2450) / 14000);
-    const secondaryFactor = (1 + (estimatedCritPct / 100) * 0.75) * 
-                            (1 + (estimatedHastePct / 100) * 0.85) * 
-                            (1 + (estimatedMasteryPct / 100) * 0.45) * 
-                            (1 + (estimatedVersPct / 100) * 0.35);
+    const secondaryFactor = (1 + (estimatedCritPct / 100) * 0.75) *
+      (1 + (estimatedHastePct / 100) * 0.85) *
+      (1 + (estimatedMasteryPct / 100) * 0.45) *
+      (1 + (estimatedVersPct / 100) * 0.35);
 
     let tierMultiplier = 1.0;
     if (tierCount >= 4) tierMultiplier = 1.095; // +9.5% for 4pc
@@ -534,11 +538,10 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
                 <button
                   key={opt.key}
                   onClick={() => setSetupAKey(opt.key)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center space-x-1 ${
-                    setupAKey === opt.key
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center space-x-1 ${setupAKey === opt.key
                       ? 'bg-cyan-900/60 text-cyan-200 border border-cyan-600/80 shadow-sm font-bold'
                       : 'bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800'
-                  }`}
+                    }`}
                 >
                   <span>{opt.icon}</span>
                   <span>{opt.label}</span>
@@ -576,11 +579,10 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
                     setSetupBKey(opt.key);
                     setCustomOverridesB({});
                   }}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center space-x-1 ${
-                    setupBKey === opt.key && Object.keys(customOverridesB).length === 0
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center space-x-1 ${setupBKey === opt.key && Object.keys(customOverridesB).length === 0
                       ? 'bg-purple-900/70 text-purple-200 border border-purple-500 shadow-sm font-bold'
                       : 'bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800'
-                  }`}
+                    }`}
                 >
                   <span>{opt.icon}</span>
                   <span>{opt.label}</span>
@@ -640,13 +642,12 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
               <Zap className="w-3.5 h-3.5 text-amber-400" />
               <span>Dano Projetado (DPS)</span>
             </span>
-            <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold ${
-              dpsDelta > 0 
-                ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/80' 
-                : dpsDelta < 0 
-                ? 'bg-red-950 text-red-400 border border-red-800/80'
-                : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
-            }`}>
+            <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold ${dpsDelta > 0
+                ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/80'
+                : dpsDelta < 0
+                  ? 'bg-red-950 text-red-400 border border-red-800/80'
+                  : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+              }`}>
               {dpsDelta > 0 ? `+${dpsDelta.toLocaleString('pt-BR')}` : dpsDelta.toLocaleString('pt-BR')}
             </span>
           </div>
@@ -658,9 +659,8 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
             </div>
 
             <div className="text-center px-2">
-              <span className={`text-xs font-black flex items-center justify-center ${
-                dpsDelta > 0 ? 'text-emerald-400' : dpsDelta < 0 ? 'text-red-400' : 'text-zinc-500'
-              }`}>
+              <span className={`text-xs font-black flex items-center justify-center ${dpsDelta > 0 ? 'text-emerald-400' : dpsDelta < 0 ? 'text-red-400' : 'text-zinc-500'
+                }`}>
                 {dpsDelta > 0 && <TrendingUp className="w-4 h-4 mr-0.5" />}
                 {dpsDelta < 0 && <TrendingDown className="w-4 h-4 mr-0.5" />}
                 {dpsDelta > 0 ? `+${dpsDeltaPct.toFixed(1)}%` : `${dpsDeltaPct.toFixed(1)}%`}
@@ -674,11 +674,11 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
           </div>
 
           <p className="text-[11px] text-zinc-400 border-t border-zinc-800/80 pt-2">
-            {dpsDelta > 0 
+            {dpsDelta > 0
               ? `Ganho líquido de +${dpsDeltaPct.toFixed(1)}% de dano simulado.`
-              : dpsDelta < 0 
-              ? `Redução de ${Math.abs(dpsDeltaPct).toFixed(1)}% no potencial ofensivo.`
-              : 'Dano idêntico entre os conjuntos selecionados.'}
+              : dpsDelta < 0
+                ? `Redução de ${Math.abs(dpsDeltaPct).toFixed(1)}% no potencial ofensivo.`
+                : 'Dano idêntico entre os conjuntos selecionados.'}
           </p>
         </div>
 
@@ -689,13 +689,12 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
               <Flame className="w-3.5 h-3.5 text-orange-400" />
               <span>Nível Médio (ilvl)</span>
             </span>
-            <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold ${
-              ilvlDelta > 0 
-                ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/80' 
-                : ilvlDelta < 0 
-                ? 'bg-red-950 text-red-400 border border-red-800/80'
-                : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
-            }`}>
+            <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold ${ilvlDelta > 0
+                ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/80'
+                : ilvlDelta < 0
+                  ? 'bg-red-950 text-red-400 border border-red-800/80'
+                  : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+              }`}>
               {ilvlDelta > 0 ? `+${ilvlDelta.toFixed(1)}` : ilvlDelta.toFixed(1)}
             </span>
           </div>
@@ -707,9 +706,8 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
             </div>
 
             <div className="text-center px-2">
-              <span className={`text-xs font-bold ${
-                ilvlDelta > 0 ? 'text-emerald-400' : ilvlDelta < 0 ? 'text-red-400' : 'text-zinc-500'
-              }`}>
+              <span className={`text-xs font-bold ${ilvlDelta > 0 ? 'text-emerald-400' : ilvlDelta < 0 ? 'text-red-400' : 'text-zinc-500'
+                }`}>
                 Δ {ilvlDelta > 0 ? `+${ilvlDelta.toFixed(1)}` : ilvlDelta.toFixed(1)}
               </span>
             </div>
@@ -739,9 +737,8 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
             </div>
 
             <div className="text-center px-2">
-              <span className={`text-xs font-bold ${
-                hasteDelta > 0 ? 'text-cyan-400' : hasteDelta < 0 ? 'text-red-400' : 'text-zinc-500'
-              }`}>
+              <span className={`text-xs font-bold ${hasteDelta > 0 ? 'text-cyan-400' : hasteDelta < 0 ? 'text-red-400' : 'text-zinc-500'
+                }`}>
                 {hasteDelta > 0 ? `+${hasteDelta.toFixed(1)}%` : `${hasteDelta.toFixed(1)}%`}
               </span>
             </div>
@@ -903,8 +900,8 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
             const availableSlotItems = getItemsBySlot(slot);
 
             return (
-              <div 
-                key={slot} 
+              <div
+                key={slot}
                 className="grid grid-cols-1 lg:grid-cols-12 p-3 items-center hover:bg-zinc-900/60 transition gap-2"
               >
                 {/* Slot Label */}
@@ -915,7 +912,7 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
                 {/* Setup A Item */}
                 <div className="lg:col-span-4 flex items-center space-x-2.5 min-w-0">
                   {itemA ? (
-                    <div 
+                    <div
                       className="flex items-center space-x-2.5 min-w-0 cursor-pointer group"
                       onMouseEnter={(e) => {
                         showTooltip(itemA.id, e, {
@@ -989,7 +986,7 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
                 {/* Setup B Item with Interactive Swapper */}
                 <div className="lg:col-span-4 flex items-center space-x-2.5 min-w-0">
                   {itemB ? (
-                    <div 
+                    <div
                       className="flex items-center space-x-2.5 min-w-0 cursor-pointer group flex-1"
                       onMouseEnter={(e) => {
                         showTooltip(itemB.id, e, {

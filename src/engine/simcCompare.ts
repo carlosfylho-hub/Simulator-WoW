@@ -14,6 +14,23 @@ export function bonusParaIlvl(ilvl?: number): number | undefined {
     return undefined;
 }
 
+// Inverse map: upgrade bonus id -> item level, used to recover the real ilvl
+// of an equipped item from the imported bonus_ids when the export omits it.
+export const ILVL_POR_BONUS: Record<number, number> = {
+    12846: 321,
+    12848: 328,
+    12854: 334,
+    12856: 341,
+};
+
+export function ilvlDosBonusIds(bonusIds?: number[]): number | undefined {
+    if (!bonusIds) return undefined;
+    for (const bonus of bonusIds) {
+        if (ILVL_POR_BONUS[bonus]) return ILVL_POR_BONUS[bonus];
+    }
+    return undefined;
+}
+
 export function buildBaseProfile(profile: ParsedSimcProfile, spec: ActiveSpec): string {
     return serializeSimcProfile(profile, spec);
 }
