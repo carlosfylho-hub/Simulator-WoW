@@ -355,7 +355,7 @@ export const WOW_ITEMS: WowItem[] = [
     isCrafted: true,
     craftMissivesAllowed: true,
     notes: 'Capa BiS craftada para conjuradores de tecido na Temporada 2.',
-    icon: 'inv_12_profession_tailoring_spellthread_blue',
+    icon: 'inv_cape_cloth_questbloodelf_b_01',
     quality: 'epic'
   },
   {
@@ -990,6 +990,18 @@ export const WOW_ITEMS: WowItem[] = [
     icon: 'inv_belt_cloth_raidwarlockulatek_d_01',
     quality: 'epic',
     notes: 'Cinto de raide alternativo do Bruxo.'
+  },
+  {
+    id: 275527,
+    namePt: 'Sinete do Rapinador',
+    nameEn: 'Preyhunter\'s Signet',
+    slot: 'finger1',
+    ilvl: 321,
+    source: 'delve',
+    sourceDetail: "Imersões (Labirinto de Kindo'jan) — anel",
+    stats: { stamina: 1629, haste: 129, mastery: 218 },
+    icon: 'inv_121_jewelry_ring03_orange',
+    quality: 'epic'
   }
 ];
 
