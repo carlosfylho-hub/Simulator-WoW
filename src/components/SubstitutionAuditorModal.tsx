@@ -3,9 +3,18 @@ import { X, CheckCircle, AlertTriangle, XCircle, ArrowRight, ShieldAlert, Sparkl
 import { SubstitutionAudit, VerdictType } from '../types/wow';
 import { getItemIconUrl, getItemQualityBorder } from '../data/items';
 import { useItemTooltip } from '../context/TooltipContext';
+import { SimcRealCompareCard } from './SimcRealCompareCard';
+
+interface SimContext {
+  base: string;
+  candidate: string;
+  scenario: string;
+  candidateLabel: string;
+}
 
 interface ModalProps {
   audit: SubstitutionAudit | null;
+  sim?: SimContext | null;
   onClose: () => void;
 }
 
@@ -42,7 +51,7 @@ const VERDICT_STYLES: Record<VerdictType, { bg: string; border: string; text: st
   }
 };
 
-export const SubstitutionAuditorModal: React.FC<ModalProps> = ({ audit, onClose }) => {
+export const SubstitutionAuditorModal: React.FC<ModalProps> = ({ audit, sim, onClose }) => {
   const { showTooltip, updateTooltipPosition, hideTooltip, pinTooltip } = useItemTooltip();
   if (!audit) return null;
 
@@ -80,6 +89,16 @@ export const SubstitutionAuditorModal: React.FC<ModalProps> = ({ audit, onClose 
             <p className="text-sm mt-1 text-zinc-200">{audit.verdictSummary}</p>
           </div>
         </div>
+
+        {/* Real SimC comparison (measured DPS) */}
+        {sim && (
+          <SimcRealCompareCard
+            base={sim.base}
+            candidate={sim.candidate}
+            scenario={sim.scenario}
+            candidateLabel={sim.candidateLabel}
+          />
+        )}
 
         {/* Comparison Cards (Equipped vs Candidate) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -242,13 +261,12 @@ export const SubstitutionAuditorModal: React.FC<ModalProps> = ({ audit, onClose 
             {Object.entries(audit.statDelta).map(([stat, val]) => (
               <span
                 key={stat}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium border ${
-                  val > 0
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium border ${val > 0
                     ? 'bg-emerald-950/60 text-emerald-300 border-emerald-700/50'
                     : val < 0
-                    ? 'bg-rose-950/60 text-rose-300 border-rose-700/50'
-                    : 'bg-zinc-900 text-zinc-400 border-zinc-800'
-                }`}
+                      ? 'bg-rose-950/60 text-rose-300 border-rose-700/50'
+                      : 'bg-zinc-900 text-zinc-400 border-zinc-800'
+                  }`}
               >
                 {stat}: {val > 0 ? `+${val}` : val}
               </span>
@@ -268,11 +286,10 @@ export const SubstitutionAuditorModal: React.FC<ModalProps> = ({ audit, onClose 
             {audit.gates.map(gate => (
               <div
                 key={gate.gate}
-                className={`p-3 rounded-lg border flex items-start space-x-3 transition ${
-                  gate.passed
+                className={`p-3 rounded-lg border flex items-start space-x-3 transition ${gate.passed
                     ? 'bg-zinc-950/40 border-zinc-800'
                     : 'bg-rose-950/30 border-rose-800/60'
-                }`}
+                  }`}
               >
                 {gate.passed ? (
                   <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
@@ -283,9 +300,8 @@ export const SubstitutionAuditorModal: React.FC<ModalProps> = ({ audit, onClose 
                   <div className="flex items-center space-x-2">
                     <span className="font-bold text-white">{gate.gate} — {gate.name}</span>
                     <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded font-semibold ${
-                        gate.passed ? 'bg-emerald-950 text-emerald-300' : 'bg-rose-950 text-rose-300'
-                      }`}
+                      className={`text-[10px] px-1.5 py-0.2 rounded font-semibold ${gate.passed ? 'bg-emerald-950 text-emerald-300' : 'bg-rose-950 text-rose-300'
+                        }`}
                     >
                       {gate.passed ? 'APROVADO' : 'REPROVADO'}
                     </span>

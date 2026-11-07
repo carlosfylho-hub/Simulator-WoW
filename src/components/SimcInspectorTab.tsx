@@ -4,6 +4,7 @@ import { ParsedSimcProfile, WowItem, ItemSlot, ActiveSpec, ParsedSimcItem, Comba
 import { parseSimcString, SAMPLE_SIMC_STRING } from '../engine/simcParser';
 import { getItemById, WOW_ITEMS, getItemIconUrl, getItemQualityBorder } from '../data/items';
 import { evaluateSubstitution } from '../engine/substitutionAuditor';
+import { buildBaseProfile, buildCandidateProfile } from '../engine/simcCompare';
 import { SubstitutionAuditorModal } from './SubstitutionAuditorModal';
 import { SimulatedBurstWindow } from './SimulatedBurstWindow';
 import { useItemTooltip } from '../context/TooltipContext';
@@ -41,6 +42,12 @@ export const SimcInspectorTab: React.FC<Props> = ({ scenario, setScenario, curre
   const [simcInput, setSimcInput] = useState<string>(SAMPLE_SIMC_STRING);
   const [profile, setProfile] = useState<ParsedSimcProfile>(() => parseSimcString(SAMPLE_SIMC_STRING));
   const [activeAudit, setActiveAudit] = useState<any | null>(null);
+  const [activeSim, setActiveSim] = useState<{
+    base: string;
+    candidate: string;
+    scenario: string;
+    candidateLabel: string;
+  } | null>(null);
   const [selectedCandidateId, setSelectedCandidateId] = useState<number>(272238); // Cingidouro do Pisa-piras
   const [selectedAuditSlot, setSelectedAuditSlot] = useState<ItemSlot>('wrists');
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
@@ -101,6 +108,20 @@ export const SimcInspectorTab: React.FC<Props> = ({ scenario, setScenario, curre
     });
 
     setActiveAudit(auditRes);
+
+    try {
+      const spec: ActiveSpec = currentSpec || 'demonology';
+      const baseProfile = buildBaseProfile(profile, spec);
+      const candidateProfile = buildCandidateProfile(profile, spec, slot, cand);
+      setActiveSim({
+        base: baseProfile,
+        candidate: candidateProfile,
+        scenario,
+        candidateLabel: cand.namePt,
+      });
+    } catch {
+      setActiveSim(null);
+    }
   };
 
   return (
@@ -216,11 +237,10 @@ export const SimcInspectorTab: React.FC<Props> = ({ scenario, setScenario, curre
         <div className="flex items-center space-x-1.5 w-full sm:w-auto">
           <button
             onClick={() => setInspectorViewMode('side_by_side')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition flex-1 sm:flex-initial justify-center ${
-              inspectorViewMode === 'side_by_side'
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition flex-1 sm:flex-initial justify-center ${inspectorViewMode === 'side_by_side'
                 ? 'bg-purple-600 text-white shadow-lg'
                 : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/80'
-            }`}
+              }`}
           >
             <ArrowLeftRight className="w-4 h-4 text-amber-300" />
             <span>Comparador Lado a Lado (Setup A × B)</span>
@@ -228,11 +248,10 @@ export const SimcInspectorTab: React.FC<Props> = ({ scenario, setScenario, curre
 
           <button
             onClick={() => setInspectorViewMode('paperdoll')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition flex-1 sm:flex-initial justify-center ${
-              inspectorViewMode === 'paperdoll'
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition flex-1 sm:flex-initial justify-center ${inspectorViewMode === 'paperdoll'
                 ? 'bg-purple-600 text-white shadow-lg'
                 : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/80'
-            }`}
+              }`}
           >
             <Layers className="w-4 h-4 text-cyan-300" />
             <span>Visão de Slots & Auditoria G0–G8</span>
@@ -342,136 +361,135 @@ export const SimcInspectorTab: React.FC<Props> = ({ scenario, setScenario, curre
             scenario={scenario}
           />
 
-      {/* Equipped Gear Paperdoll Layout */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-300">
-            Equipamentos Detectados no Export
-          </h3>
-          <span className="text-xs text-zinc-500">Clique em qualquer slot para auditar ou substituir</span>
-        </div>
+          {/* Equipped Gear Paperdoll Layout */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-300">
+                Equipamentos Detectados no Export
+              </h3>
+              <span className="text-xs text-zinc-500">Clique em qualquer slot para auditar ou substituir</span>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          {ORDERED_SLOTS.map(({ slot, label }) => {
-            const eq = profile.equipped[slot];
-            const itemCatalog = eq ? getItemById(eq.id) : null;
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              {ORDERED_SLOTS.map(({ slot, label }) => {
+                const eq = profile.equipped[slot];
+                const itemCatalog = eq ? getItemById(eq.id) : null;
 
-            return (
-              <div
-                key={slot}
-                onClick={() => {
-                  if (itemCatalog) {
-                    setSelectedAuditSlot(slot);
-                    triggerAudit(slot, itemCatalog);
-                  }
-                }}
-                className={`p-3.5 rounded-xl border transition cursor-pointer flex flex-col justify-between ${
-                  eq
-                    ? 'bg-zinc-900/90 border-zinc-800 hover:border-purple-600 hover:bg-zinc-850'
-                    : 'bg-zinc-950/40 border-dashed border-zinc-800/80 text-zinc-600'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between text-[11px] text-zinc-400 mb-1.5">
-                    <span className="font-semibold text-zinc-300">{label}</span>
-                    {eq && (
-                      <span className="px-1.5 py-0.2 rounded bg-zinc-800 text-[10px] font-mono text-amber-300">
-                        ilvl {itemCatalog?.ilvl ?? eq.ilvl ?? 321}
-                      </span>
-                    )}
-                  </div>
-
-                  {eq ? (
-                    <div
-                      className="flex items-start space-x-2.5 cursor-pointer group"
-                      onMouseEnter={(e) => {
-                        showTooltip(eq.id, e, {
-                          slot: label,
-                          itemPt: itemCatalog?.namePt ?? eq.name,
-                          itemEn: itemCatalog?.nameEn ?? eq.name,
-                          ilvl: itemCatalog?.ilvl ?? eq.ilvl,
-                          icon: itemCatalog?.icon
-                        });
-                      }}
-                      onMouseMove={updateTooltipPosition}
-                      onMouseLeave={hideTooltip}
-                      onClick={() => {
-                        pinTooltip(eq.id, {
-                          slot: label,
-                          itemPt: itemCatalog?.namePt ?? eq.name,
-                          itemEn: itemCatalog?.nameEn ?? eq.name,
-                          ilvl: itemCatalog?.ilvl ?? eq.ilvl,
-                          icon: itemCatalog?.icon
-                        });
-                      }}
-                    >
-                      {/* Authentic Wowhead / Raidbots-like Item Icon */}
-                      <img
-                        src={getItemIconUrl(itemCatalog)}
-                        alt={itemCatalog?.namePt ?? eq.name ?? 'Item'}
-                        className={`w-9 h-9 rounded border ${getItemQualityBorder(itemCatalog)} flex-shrink-0 shadow group-hover:scale-105 transition`}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://wow.zamimg.com/images/wow/icons/medium/inv_misc_questionmark.jpg';
-                        }}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-xs font-bold text-zinc-100 truncate">
-                          {itemCatalog?.namePt ?? eq.name ?? `Item ID ${eq.id}`}
-                        </h4>
-                        <p className="text-[10px] italic text-zinc-500 truncate">
-                          {itemCatalog?.nameEn ?? `ID: ${eq.id}`}
-                        </p>
-
-                        {/* Enchant & Gem indicators */}
-                        <div className="mt-1.5 space-y-0.5 text-[10px]">
-                          {eq.enchantName ? (
-                            <div className="text-purple-400 truncate flex items-center space-x-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 inline-block" />
-                              <span>{eq.enchantName}</span>
-                            </div>
-                          ) : (
-                            ['head', 'shoulders', 'chest', 'feet', 'finger1', 'finger2', 'main_hand'].includes(slot) && (
-                              <div className="text-amber-500/80 flex items-center space-x-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500/60 inline-block" />
-                                <span>Sem encantamento</span>
-                              </div>
-                            )
-                          )}
-
-                          {slot === 'legs' && (
-                            <div className="text-cyan-400 truncate flex items-center space-x-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 inline-block" />
-                              <span>Magilinha de Arcanotrama (+41 Int)</span>
-                            </div>
-                          )}
-
-                          {itemCatalog?.embellished && (
-                            <div className="text-amber-300 font-semibold truncate flex items-center space-x-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
-                              <span>Embelezado (Forro de Arcanotrama)</span>
-                            </div>
-                          )}
-
-                          {itemCatalog?.isTier && (
-                            <div className="text-emerald-400 font-semibold truncate flex items-center space-x-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-                              <span>Peça de Tier (Grilhões 2066)</span>
-                            </div>
-                          )}
-                        </div>
+                return (
+                  <div
+                    key={slot}
+                    onClick={() => {
+                      if (itemCatalog) {
+                        setSelectedAuditSlot(slot);
+                        triggerAudit(slot, itemCatalog);
+                      }
+                    }}
+                    className={`p-3.5 rounded-xl border transition cursor-pointer flex flex-col justify-between ${eq
+                        ? 'bg-zinc-900/90 border-zinc-800 hover:border-purple-600 hover:bg-zinc-850'
+                        : 'bg-zinc-950/40 border-dashed border-zinc-800/80 text-zinc-600'
+                      }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] text-zinc-400 mb-1.5">
+                        <span className="font-semibold text-zinc-300">{label}</span>
+                        {eq && (
+                          <span className="px-1.5 py-0.2 rounded bg-zinc-800 text-[10px] font-mono text-amber-300">
+                            ilvl {itemCatalog?.ilvl ?? eq.ilvl ?? 321}
+                          </span>
+                        )}
                       </div>
+
+                      {eq ? (
+                        <div
+                          className="flex items-start space-x-2.5 cursor-pointer group"
+                          onMouseEnter={(e) => {
+                            showTooltip(eq.id, e, {
+                              slot: label,
+                              itemPt: itemCatalog?.namePt ?? eq.name,
+                              itemEn: itemCatalog?.nameEn ?? eq.name,
+                              ilvl: itemCatalog?.ilvl ?? eq.ilvl,
+                              icon: itemCatalog?.icon
+                            });
+                          }}
+                          onMouseMove={updateTooltipPosition}
+                          onMouseLeave={hideTooltip}
+                          onClick={() => {
+                            pinTooltip(eq.id, {
+                              slot: label,
+                              itemPt: itemCatalog?.namePt ?? eq.name,
+                              itemEn: itemCatalog?.nameEn ?? eq.name,
+                              ilvl: itemCatalog?.ilvl ?? eq.ilvl,
+                              icon: itemCatalog?.icon
+                            });
+                          }}
+                        >
+                          {/* Authentic Wowhead / Raidbots-like Item Icon */}
+                          <img
+                            src={getItemIconUrl(itemCatalog)}
+                            alt={itemCatalog?.namePt ?? eq.name ?? 'Item'}
+                            className={`w-9 h-9 rounded border ${getItemQualityBorder(itemCatalog)} flex-shrink-0 shadow group-hover:scale-105 transition`}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://wow.zamimg.com/images/wow/icons/medium/inv_misc_questionmark.jpg';
+                            }}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <h4 className="text-xs font-bold text-zinc-100 truncate">
+                              {itemCatalog?.namePt ?? eq.name ?? `Item ID ${eq.id}`}
+                            </h4>
+                            <p className="text-[10px] italic text-zinc-500 truncate">
+                              {itemCatalog?.nameEn ?? `ID: ${eq.id}`}
+                            </p>
+
+                            {/* Enchant & Gem indicators */}
+                            <div className="mt-1.5 space-y-0.5 text-[10px]">
+                              {eq.enchantName ? (
+                                <div className="text-purple-400 truncate flex items-center space-x-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400 inline-block" />
+                                  <span>{eq.enchantName}</span>
+                                </div>
+                              ) : (
+                                ['head', 'shoulders', 'chest', 'feet', 'finger1', 'finger2', 'main_hand'].includes(slot) && (
+                                  <div className="text-amber-500/80 flex items-center space-x-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500/60 inline-block" />
+                                    <span>Sem encantamento</span>
+                                  </div>
+                                )
+                              )}
+
+                              {slot === 'legs' && (
+                                <div className="text-cyan-400 truncate flex items-center space-x-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 inline-block" />
+                                  <span>Magilinha de Arcanotrama (+41 Int)</span>
+                                </div>
+                              )}
+
+                              {itemCatalog?.embellished && (
+                                <div className="text-amber-300 font-semibold truncate flex items-center space-x-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
+                                  <span>Embelezado (Forro de Arcanotrama)</span>
+                                </div>
+                              )}
+
+                              {itemCatalog?.isTier && (
+                                <div className="text-emerald-400 font-semibold truncate flex items-center space-x-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                                  <span>Peça de Tier (Grilhões 2066)</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="py-2 text-center text-xs text-zinc-600 italic">
+                          Slot Vazio / Não Equipado
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="py-2 text-center text-xs text-zinc-600 italic">
-                      Slot Vazio / Não Equipado
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-            })}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
         </>
       )}
 
@@ -486,7 +504,11 @@ export const SimcInspectorTab: React.FC<Props> = ({ scenario, setScenario, curre
       {/* Audit Modal */}
       <SubstitutionAuditorModal
         audit={activeAudit}
-        onClose={() => setActiveAudit(null)}
+        sim={activeSim}
+        onClose={() => {
+          setActiveAudit(null);
+          setActiveSim(null);
+        }}
       />
     </div>
   );
