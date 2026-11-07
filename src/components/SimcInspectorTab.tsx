@@ -11,7 +11,6 @@ import { useItemTooltip } from '../context/TooltipContext';
 import { SimcPerformanceSummaryCard } from './SimcPerformanceSummaryCard';
 import { SimcExportModal } from './SimcExportModal';
 import { SimcSideBySideComparison } from './SimcSideBySideComparison';
-import { CombatScenarioSelector } from './CombatScenarioSelector';
 
 interface Props {
   scenario: CombatScenario;
@@ -38,7 +37,7 @@ const ORDERED_SLOTS: { slot: ItemSlot; label: string }[] = [
   { slot: 'off_hand', label: 'Mão Secundária' }
 ];
 
-export const SimcInspectorTab: React.FC<Props> = ({ scenario, setScenario, currentSpec }) => {
+export const SimcInspectorTab: React.FC<Props> = ({ scenario, currentSpec }) => {
   const [simcInput, setSimcInput] = useState<string>(SAMPLE_SIMC_STRING);
   const [profile, setProfile] = useState<ParsedSimcProfile>(() => parseSimcString(SAMPLE_SIMC_STRING));
   const [activeAudit, setActiveAudit] = useState<any | null>(null);
@@ -126,44 +125,38 @@ export const SimcInspectorTab: React.FC<Props> = ({ scenario, setScenario, curre
 
   return (
     <div className="space-y-6">
-      {/* Dynamic Combat Scenarios (Option 5) */}
-      {setScenario && (
-        <CombatScenarioSelector
-          currentScenario={scenario}
-          onSelectScenario={setScenario}
-          variant="cards"
-        />
-      )}
-
       {/* Real-Time Performance & Gear Metrics Summary Card */}
       <SimcPerformanceSummaryCard profile={profile} scenario={scenario} activeSpec={currentSpec} />
 
-      {/* Overview & Ceilings Reminder */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
-          <div className="text-[11px] font-bold uppercase text-zinc-400">Teto de Craft</div>
-          <div className="text-lg font-black text-amber-400">ilvl 331</div>
-          <p className="text-[11px] text-zinc-500">Centelha de Marés + 80 Cristas Míticas</p>
+      {/* Overview & Ceilings (collapsed by default to reduce clutter) */}
+      <details className="group bg-zinc-900 border border-zinc-800 rounded-xl">
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm text-zinc-300 hover:text-white flex items-center justify-between">
+          <span>Limites da temporada (5 tetos)</span>
+          <span className="text-xs text-zinc-500">{'ver detalhes'}</span>
+        </summary>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-4 pb-4">
+          <div className="p-3 bg-zinc-950/60 border border-zinc-800 rounded-lg">
+            <div className="text-[10px] font-bold uppercase text-zinc-500">Teto de Craft</div>
+            <div className="text-base font-bold text-zinc-100">ilvl 331</div>
+            <p className="text-[11px] text-zinc-500">Centelha de Marés + 80 Cristas Míticas</p>
+          </div>
+          <div className="p-3 bg-zinc-950/60 border border-zinc-800 rounded-lg">
+            <div className="text-[10px] font-bold uppercase text-zinc-500">Embelezamentos</div>
+            <div className="text-base font-bold text-zinc-100">Máx. 2 efeitos</div>
+            <p className="text-[11px] text-zinc-500">Limite de efeitos ativos, não de peças</p>
+          </div>
+          <div className="p-3 bg-zinc-950/60 border border-zinc-800 rounded-lg">
+            <div className="text-[10px] font-bold uppercase text-zinc-500">Gema Prismática</div>
+            <div className="text-base font-bold text-zinc-100">1 diamante</div>
+            <p className="text-[11px] text-zinc-500">Canto Eterno Poderoso ou Estoico</p>
+          </div>
+          <div className="p-3 bg-zinc-950/60 border border-zinc-800 rounded-lg">
+            <div className="text-[10px] font-bold uppercase text-zinc-500">Berloques (R4)</div>
+            <div className="text-base font-bold text-zinc-100">1 ativo + 1 passivo</div>
+            <p className="text-[11px] text-zinc-500">Proibido 2 on-use (dividem recarga)</p>
+          </div>
         </div>
-
-        <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
-          <div className="text-[11px] font-bold uppercase text-zinc-400">Embelezamentos</div>
-          <div className="text-lg font-black text-purple-400">Max 2 Efeitos</div>
-          <p className="text-[11px] text-zinc-500">Limite de efeitos ativos, não de peças</p>
-        </div>
-
-        <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
-          <div className="text-[11px] font-bold uppercase text-zinc-400">Gema Prismática</div>
-          <div className="text-lg font-black text-cyan-400">1 Diamante</div>
-          <p className="text-[11px] text-zinc-500">Canto Eterno Poderoso ou Estoico</p>
-        </div>
-
-        <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
-          <div className="text-[11px] font-bold uppercase text-zinc-400">Berloques (R4)</div>
-          <div className="text-lg font-black text-emerald-400">1 Ativo + 1 Passivo</div>
-          <p className="text-[11px] text-zinc-500">Proibido 2 on-use (dividem recarga)</p>
-        </div>
-      </div>
+      </details>
 
       {/* SimC Input Drawer / Box */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 shadow-lg">
@@ -238,8 +231,8 @@ export const SimcInspectorTab: React.FC<Props> = ({ scenario, setScenario, curre
           <button
             onClick={() => setInspectorViewMode('side_by_side')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition flex-1 sm:flex-initial justify-center ${inspectorViewMode === 'side_by_side'
-                ? 'bg-purple-600 text-white shadow-lg'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/80'
+              ? 'bg-purple-600 text-white shadow-lg'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/80'
               }`}
           >
             <ArrowLeftRight className="w-4 h-4 text-amber-300" />
@@ -249,8 +242,8 @@ export const SimcInspectorTab: React.FC<Props> = ({ scenario, setScenario, curre
           <button
             onClick={() => setInspectorViewMode('paperdoll')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition flex-1 sm:flex-initial justify-center ${inspectorViewMode === 'paperdoll'
-                ? 'bg-purple-600 text-white shadow-lg'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/80'
+              ? 'bg-purple-600 text-white shadow-lg'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/80'
               }`}
           >
             <Layers className="w-4 h-4 text-cyan-300" />
@@ -385,8 +378,8 @@ export const SimcInspectorTab: React.FC<Props> = ({ scenario, setScenario, curre
                       }
                     }}
                     className={`p-3.5 rounded-xl border transition cursor-pointer flex flex-col justify-between ${eq
-                        ? 'bg-zinc-900/90 border-zinc-800 hover:border-purple-600 hover:bg-zinc-850'
-                        : 'bg-zinc-950/40 border-dashed border-zinc-800/80 text-zinc-600'
+                      ? 'bg-zinc-900/90 border-zinc-800 hover:border-purple-600 hover:bg-zinc-850'
+                      : 'bg-zinc-950/40 border-dashed border-zinc-800/80 text-zinc-600'
                       }`}
                   >
                     <div>

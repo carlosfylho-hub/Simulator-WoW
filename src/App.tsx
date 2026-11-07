@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Navbar } from './components/Navbar';
+import { Navbar, Area } from './components/Navbar';
 import { SimcInspectorTab } from './components/SimcInspectorTab';
 import { DelveMasteryTab } from './components/DelveMasteryTab';
 import { FolioRunesTab } from './components/FolioRunesTab';
@@ -12,32 +12,61 @@ import { TooltipProvider } from './context/TooltipContext';
 import { fetchCatalogItems } from './services/catalogService';
 import { aplicarCatalogo } from './data/items';
 
+type SubTab = { id: string; label: string };
+
+const SUBTABS: Record<Area, SubTab[]> = {
+  simular: [
+    { id: 'inspecionar', label: 'Inspecionar' },
+    { id: 'builds', label: 'Builds' },
+  ],
+  explorar: [
+    { id: 'itens', label: 'Itens' },
+    { id: 'runas', label: 'Runas' },
+  ],
+  planejar: [
+    { id: 'progressao', label: 'Progressão' },
+    { id: 'delves', label: 'Delves' },
+  ],
+};
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState<string>('simc');
+  const [area, setAreaState] = useState<Area>('simular');
+  const [sub, setSub] = useState<string>(SUBTABS.simular[0].id);
   const [scenario, setScenario] = useState<CombatScenario>('patchwerk');
   const [currentSpec, setCurrentSpec] = useState<ActiveSpec>('demonology');
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState<boolean>(false);
 
+  const setArea = (nova: Area) => {
+    setAreaState(nova);
+    setSub(SUBTABS[nova][0].id);
+  };
+
+  const irParaAuditoria = () => {
+    setAreaState('simular');
+    setSub('inspecionar');
+  };
+
   // Reconcile item names with the authoritative Python catalog (best effort).
   useEffect(() => {
     fetchCatalogItems()
-      .then(itens => aplicarCatalogo(itens))
+      .then((itens) => aplicarCatalogo(itens))
       .catch(() => {
         /* backend offline: keep the bundled names */
       });
   }, []);
 
-  const handleSelectItemForAudit = (item: WowItem) => {
-    setActiveTab('simc');
+  const handleSelectItemForAudit = (_item: WowItem) => {
+    irParaAuditoria();
   };
+
+  const subtabs = SUBTABS[area];
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-purple-600 selection:text-white">
-        {/* Navigation Header */}
+      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
         <Navbar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          area={area}
+          setArea={setArea}
           scenario={scenario}
           setScenario={setScenario}
           currentSpec={currentSpec}
@@ -45,23 +74,46 @@ export default function App() {
           onOpenAiChat={() => setIsAiDrawerOpen(true)}
         />
 
-        {/* Main Container */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {activeTab === 'simc' && (
-            <SimcInspectorTab
-              scenario={scenario}
-              setScenario={setScenario}
-              currentSpec={currentSpec}
-            />
+        <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-8">
+          {/* Secondary tabs (only when the area has more than one section) */}
+          {subtabs.length > 1 && (
+            <div className="flex items-center gap-1 mb-8 border-b border-zinc-900 pb-2">
+              {subtabs.map((tab) => {
+                const ativo = sub === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setSub(tab.id)}
+                    className={`px-3 py-1.5 text-sm rounded-md transition-colors ${ativo
+                        ? 'text-white bg-zinc-800/80'
+                        : 'text-zinc-500 hover:text-zinc-200'
+                      }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
           )}
-          {activeTab === 'builds' && <BuildsSimulatorTab externalSpecId={currentSpec} onSpecChange={setCurrentSpec} />}
-          {activeTab === 'delves' && <DelveMasteryTab scenario={scenario as any} setScenario={setScenario as any} />}
-          {activeTab === 'runes' && <FolioRunesTab />}
-          {activeTab === 'noraid' && <NoRaidRoadmapTab />}
-          {activeTab === 'database' && <DatabaseExplorerTab onSelectItemForAudit={handleSelectItemForAudit} />}
+
+          {area === 'simular' && sub === 'inspecionar' && (
+            <SimcInspectorTab scenario={scenario} setScenario={setScenario} currentSpec={currentSpec} />
+          )}
+          {area === 'simular' && sub === 'builds' && (
+            <BuildsSimulatorTab externalSpecId={currentSpec} onSpecChange={setCurrentSpec} />
+          )}
+
+          {area === 'explorar' && sub === 'itens' && (
+            <DatabaseExplorerTab onSelectItemForAudit={handleSelectItemForAudit} />
+          )}
+          {area === 'explorar' && sub === 'runas' && <FolioRunesTab />}
+
+          {area === 'planejar' && sub === 'progressao' && <NoRaidRoadmapTab />}
+          {area === 'planejar' && sub === 'delves' && (
+            <DelveMasteryTab scenario={scenario as any} setScenario={setScenario as any} />
+          )}
         </main>
 
-        {/* AI Tactical Consultant Drawer */}
         <AiConsultantDrawer
           isOpen={isAiDrawerOpen}
           onClose={() => setIsAiDrawerOpen(false)}
@@ -69,16 +121,11 @@ export default function App() {
           currentSpec={currentSpec}
         />
 
-        {/* Footer */}
-        <footer className="border-t border-zinc-900 bg-zinc-950 py-6 text-zinc-500 text-xs text-center">
-          <div className="max-w-7xl mx-auto px-4 space-y-1">
-            <p className="font-semibold text-zinc-400">
-              World of Warcraft: Midnight — Patch 12.1.5 (A Maldição de Ula'tek) · Temporada 2
-            </p>
-            <p className="text-[11px] text-zinc-600">
-              Auditado com dados oficiais do tooltip PT-BR (locale=8 / DB2). Respeito estrito aos 5 tetos de build (331 craft, 2 embelezamentos, 1 diamante, 72 runas, R4 berloques).
-            </p>
-          </div>
+        <footer className="border-t border-zinc-900 py-6 text-zinc-600 text-xs text-center">
+          <p>World of Warcraft: Midnight — Patch 12.1.5 · Temporada 2</p>
+          <p className="text-[11px] text-zinc-700 mt-1">
+            Números de DPS somente pelo SimulationCraft. Dados auditados do tooltip PT-BR.
+          </p>
         </footer>
       </div>
     </TooltipProvider>
