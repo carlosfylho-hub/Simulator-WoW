@@ -993,8 +993,36 @@ export const WOW_ITEMS: WowItem[] = [
   }
 ];
 
+// --- Reconciliação com o catálogo Python (fonte única) ---
+// O backend expõe /api/catalog/items com nomes PT/EN oficiais. Aplicamos um
+// override em memória para que getItemById devolva o nome canônico do Python.
+const CATALOG_OVERRIDES = new Map<number, Partial<WowItem>>();
+
+export interface CatalogItemLite {
+  id: number;
+  nome_pt?: string | null;
+  nome_en?: string | null;
+}
+
+export function aplicarCatalogo(itens: CatalogItemLite[]): number {
+  let aplicados = 0;
+  for (const item of itens) {
+    const patch: Partial<WowItem> = {};
+    if (item.nome_pt) patch.namePt = item.nome_pt;
+    if (item.nome_en) patch.nameEn = item.nome_en;
+    if (Object.keys(patch).length === 0) continue;
+    const atual = CATALOG_OVERRIDES.get(item.id) || {};
+    CATALOG_OVERRIDES.set(item.id, { ...atual, ...patch });
+    aplicados++;
+  }
+  return aplicados;
+}
+
 export function getItemById(id: number): WowItem | undefined {
-  return WOW_ITEMS.find(item => item.id === id);
+  const base = WOW_ITEMS.find(item => item.id === id);
+  const override = CATALOG_OVERRIDES.get(id);
+  if (base && override) return { ...base, ...override };
+  return base;
 }
 
 export function getItemsBySlot(slot: string): WowItem[] {
