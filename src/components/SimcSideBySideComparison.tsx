@@ -243,7 +243,21 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
   };
 
   const setupAItems = useMemo(() => resolveSetupItems(setupAKey), [setupAKey, equippedMap, candidateItemId, candidateSlot, presetDefinitions]);
-  const setupBItems = useMemo(() => resolveSetupItems(setupBKey, customOverridesB), [setupBKey, customOverridesB, equippedMap, candidateItemId, candidateSlot, presetDefinitions]);
+
+  // Setup B: substitute trinkets should reflect the same +7 forge as the
+  // equipped ones (334 -> 341, 321 -> 328), so the comparison stays on the
+  // same upgrade track instead of showing a fake -7 ilvl gap.
+  const setupBItems = useMemo(() => {
+    const base = resolveSetupItems(setupBKey, customOverridesB);
+    (['trinket1', 'trinket2'] as ItemSlot[]).forEach((slot) => {
+      const equipado = equippedMap[slot];
+      const candidato = base[slot];
+      if (equipado && candidato && equipado.ilvl - candidato.ilvl === 7) {
+        base[slot] = { ...candidato, ilvl: equipado.ilvl };
+      }
+    });
+    return base;
+  }, [setupBKey, customOverridesB, equippedMap, candidateItemId, candidateSlot, presetDefinitions]);
 
   // Calculate comprehensive metrics for any item set
   const calculateSetupMetrics = (items: Partial<Record<ItemSlot, WowItem>>) => {
@@ -539,8 +553,8 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
                   key={opt.key}
                   onClick={() => setSetupAKey(opt.key)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center space-x-1 ${setupAKey === opt.key
-                      ? 'bg-cyan-900/60 text-cyan-200 border border-cyan-600/80 shadow-sm font-bold'
-                      : 'bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800'
+                    ? 'bg-cyan-900/60 text-cyan-200 border border-cyan-600/80 shadow-sm font-bold'
+                    : 'bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800'
                     }`}
                 >
                   <span>{opt.icon}</span>
@@ -580,8 +594,8 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
                     setCustomOverridesB({});
                   }}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium transition flex items-center space-x-1 ${setupBKey === opt.key && Object.keys(customOverridesB).length === 0
-                      ? 'bg-purple-900/70 text-purple-200 border border-purple-500 shadow-sm font-bold'
-                      : 'bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800'
+                    ? 'bg-purple-900/70 text-purple-200 border border-purple-500 shadow-sm font-bold'
+                    : 'bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800'
                     }`}
                 >
                   <span>{opt.icon}</span>
@@ -643,10 +657,10 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
               <span>Dano Projetado (DPS)</span>
             </span>
             <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold ${dpsDelta > 0
-                ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/80'
-                : dpsDelta < 0
-                  ? 'bg-red-950 text-red-400 border border-red-800/80'
-                  : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+              ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/80'
+              : dpsDelta < 0
+                ? 'bg-red-950 text-red-400 border border-red-800/80'
+                : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
               }`}>
               {dpsDelta > 0 ? `+${dpsDelta.toLocaleString('pt-BR')}` : dpsDelta.toLocaleString('pt-BR')}
             </span>
@@ -690,10 +704,10 @@ export const SimcSideBySideComparison: React.FC<Props> = ({
               <span>Nível Médio (ilvl)</span>
             </span>
             <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold ${ilvlDelta > 0
-                ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/80'
-                : ilvlDelta < 0
-                  ? 'bg-red-950 text-red-400 border border-red-800/80'
-                  : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+              ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/80'
+              : ilvlDelta < 0
+                ? 'bg-red-950 text-red-400 border border-red-800/80'
+                : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
               }`}>
               {ilvlDelta > 0 ? `+${ilvlDelta.toFixed(1)}` : ilvlDelta.toFixed(1)}
             </span>

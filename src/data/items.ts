@@ -1002,6 +1002,18 @@ export const WOW_ITEMS: WowItem[] = [
     stats: { stamina: 1629, haste: 129, mastery: 218 },
     icon: 'inv_121_jewelry_ring03_orange',
     quality: 'epic'
+  },
+  {
+    id: 251156,
+    namePt: 'Cajado do Orador Decaído',
+    nameEn: 'Fallen Speaker\'s Staff',
+    slot: 'main_hand',
+    ilvl: 341,
+    source: 'delve',
+    sourceDetail: "Imersões (Labirinto de Kindo'jan) — cajado 2M",
+    weaponType: 'staff_2h',
+    icon: 'inv_staff_2h_amani_c_01',
+    quality: 'epic'
   }
 ];
 
