@@ -12,9 +12,11 @@ import {
     XCircle,
 } from 'lucide-react';
 import {
+    DropCsvSalvo,
     DropEstimativa,
     DropJob,
     DropModo,
+    DropRankingItem,
     DropResult,
     ROTULO_MODO,
     cancelarDrop,
@@ -22,6 +24,7 @@ import {
     criarDrop,
     estimativaDrop,
     resultadoDrop,
+    salvarCsvDrop,
 } from '../services/dropService';
 import {
     carregarImportLocal,
@@ -34,6 +37,8 @@ import { CENARIOS_DROPDOWN, DESCRICAO_CENARIO } from '../data/scenarios';
 import { SimulationProgressBar } from './SimulationProgressBar';
 import { InfoTip } from './InfoTip';
 import { usePersistedState } from '../services/persistedState';
+import { useItemTooltip } from '../context/TooltipContext';
+import { getItemById, getItemIconUrl, getItemQualityBorder } from '../data/items';
 
 interface Props {
     scenario: string;
@@ -51,6 +56,17 @@ const pct = (valor: number | null | undefined) =>
 const terminado = (status: string) => ['done', 'error', 'cancelled'].includes(status);
 
 const ehAmr = (texto: string) => texto.trim().startsWith('$');
+
+const iconeDoItem = (item: DropRankingItem): string =>
+    item.icone
+        ? `https://wow.zamimg.com/images/wow/icons/medium/${item.icone}.jpg`
+        : getItemIconUrl(getItemById(item.item_id ?? -1));
+
+const bordaDoItem = (item: DropRankingItem): string =>
+    getItemQualityBorder(getItemById(item.item_id ?? -1));
+
+const nomeDoItem = (item: DropRankingItem): string =>
+    item.nome_pt || item.nome_en || (item.item_id != null ? `#${item.item_id}` : '—');
 
 export const DroptimizerPanel: React.FC<Props> = ({ scenario, setScenario }) => {
     const [addon, setAddon] = useState<string>(() => carregarImportLocal() || '');
@@ -83,7 +99,11 @@ export const DroptimizerPanel: React.FC<Props> = ({ scenario, setScenario }) => 
     const [validando, setValidando] = useState(false);
     const [combinacao, setCombinacao] = useState<CombinacaoResultado | null>(null);
     const [estimativa, setEstimativa] = useState<DropEstimativa | null>(null);
+    const [salvandoCsv, setSalvandoCsv] = useState(false);
+    const [csvSalvo, setCsvSalvo] = useState<DropCsvSalvo | null>(null);
+    const [erroCsv, setErroCsv] = useState<string | null>(null);
     const pollingRef = useRef<number | null>(null);
+    const { showTooltip, hideTooltip } = useItemTooltip();
 
     useEffect(() => {
         if (!addon) return;
@@ -216,6 +236,8 @@ export const DroptimizerPanel: React.FC<Props> = ({ scenario, setScenario }) => 
         setErro(null);
         setResultado(null);
         setJob(null);
+        setCsvSalvo(null);
+        setErroCsv(null);
         setCarregando(true);
         try {
             const criado = await criarDrop({
@@ -248,30 +270,20 @@ export const DroptimizerPanel: React.FC<Props> = ({ scenario, setScenario }) => 
         }
     };
 
-    const baixarCsv = () => {
-        if (!resultado) return;
-        const linhas = ['slot;item_id;nome_pt;ilvl;dps;delta_pct;limiar_pct;veredito'];
-        resultado.itens.forEach((item) => {
-            linhas.push(
-                [
-                    item.slot,
-                    item.item_id ?? '',
-                    (item.nome_pt ?? '').replace(/;/g, ','),
-                    item.ilvl ?? '',
-                    item.dps.toFixed(1),
-                    item.delta_pct.toFixed(3),
-                    item.limiar_pct.toFixed(3),
-                    item.veredito,
-                ].join(';'),
-            );
-        });
-        const blob = new Blob([linhas.join('\n')], { type: 'text/csv;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `droptimizer-${resultado.modo}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
+    // O CSV é gravado pelo backend: a janela do app desktop não tem gerenciador
+    // de download, e o link `blob:` que havia aqui não gerava arquivo nem erro.
+    const baixarCsv = async () => {
+        if (!job?.id || salvandoCsv) return;
+        setSalvandoCsv(true);
+        setErroCsv(null);
+        setCsvSalvo(null);
+        try {
+            setCsvSalvo(await salvarCsvDrop(job.id));
+        } catch (e: any) {
+            setErroCsv(e?.message || 'Não foi possível salvar o CSV.');
+        } finally {
+            setSalvandoCsv(false);
+        }
     };
 
     const mostraInv = useMemo(() => ehAmr(addon) || amr.trim().length > 0, [addon, amr]);
@@ -582,13 +594,30 @@ export const DroptimizerPanel: React.FC<Props> = ({ scenario, setScenario }) => 
                         {resultado.itens.length > 0 && (
                             <button
                                 onClick={baixarCsv}
-                                className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white"
+                                disabled={salvandoCsv}
+                                className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed text-xs font-semibold text-white"
                             >
-                                <Download className="w-3.5 h-3.5" />
-                                <span>Baixar CSV</span>
+                                {salvandoCsv ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                    <Download className="w-3.5 h-3.5" />
+                                )}
+                                <span>{salvandoCsv ? 'Salvando...' : 'Salvar CSV'}</span>
                             </button>
                         )}
                     </div>
+
+                    {csvSalvo && (
+                        <div className="text-[11px] text-emerald-300 bg-emerald-950/30 border border-emerald-800/60 rounded-lg px-3 py-2">
+                            <span className="font-semibold">{csvSalvo.linhas} linhas salvas em</span>{' '}
+                            <span className="font-mono break-all text-emerald-200">{csvSalvo.caminho}</span>
+                        </div>
+                    )}
+                    {erroCsv && (
+                        <div className="text-[11px] text-rose-300 bg-rose-950/30 border border-rose-800/60 rounded-lg px-3 py-2">
+                            {erroCsv}
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         <div className="bg-zinc-950/70 border border-zinc-800 rounded-lg p-3">
@@ -626,11 +655,51 @@ export const DroptimizerPanel: React.FC<Props> = ({ scenario, setScenario }) => 
                                                 : item.veredito === 'perda'
                                                     ? 'text-rose-400'
                                                     : 'text-zinc-400';
+                                        // Anel e berloque são medidos em dois slots; a linha mostra o
+                                        // melhor e registra aqui onde mais o item foi testado.
+                                        const outros = (item.slots_testados ?? []).filter(
+                                            (slot) => slot !== item.slot,
+                                        );
                                         return (
-                                            <tr key={`${item.slot}-${item.item_id ?? indice}`} className="border-t border-zinc-800/70">
-                                                <td className="py-1.5 pr-3 font-mono text-sky-300">{item.slot}</td>
+                                            <tr
+                                                key={`${item.item_id ?? indice}-${item.ilvl ?? ''}-${item.slot}`}
+                                                className="border-t border-zinc-800/70 hover:bg-zinc-900/40"
+                                            >
+                                                <td className="py-1.5 pr-3 font-mono text-sky-300 align-top">
+                                                    {item.slot}
+                                                    {outros.length > 0 && (
+                                                        <span
+                                                            className="block text-[10px] text-zinc-500 font-sans"
+                                                            title={`Também medido em: ${outros.join(', ')}`}
+                                                        >
+                                                            +{outros.length} slot{outros.length > 1 ? 's' : ''}
+                                                        </span>
+                                                    )}
+                                                </td>
                                                 <td className="py-1.5 pr-3">
-                                                    {item.nome_pt ?? (item.item_id != null ? `#${item.item_id}` : '—')}
+                                                    <span
+                                                        className="inline-flex items-center space-x-2 cursor-help"
+                                                        onMouseEnter={(e) =>
+                                                            item.item_id != null &&
+                                                            showTooltip(item.item_id, e, {
+                                                                slot: item.slot,
+                                                                itemPt: item.nome_pt ?? undefined,
+                                                                itemEn: item.nome_en ?? undefined,
+                                                                ilvl: item.ilvl ?? undefined,
+                                                                icon: item.icone ?? undefined,
+                                                                stats: item.stats ?? undefined,
+                                                            })
+                                                        }
+                                                        onMouseLeave={hideTooltip}
+                                                    >
+                                                        <img
+                                                            src={iconeDoItem(item)}
+                                                            alt=""
+                                                            loading="lazy"
+                                                            className={`h-6 w-6 shrink-0 rounded border ${bordaDoItem(item)}`}
+                                                        />
+                                                        <span>{nomeDoItem(item)}</span>
+                                                    </span>
                                                 </td>
                                                 <td className="py-1.5 pr-3 text-zinc-400">{item.ilvl ?? '—'}</td>
                                                 <td className="py-1.5 pr-3">{numero(item.dps)}</td>

@@ -94,6 +94,13 @@ export interface TopGearPoolsResumo {
     }>>;
 }
 
+export interface TopGearArquivoSalvo {
+    caminho: string;
+    pasta: string;
+    arquivo: string;
+    linhas: number;
+}
+
 export interface TopGearRequest {
     addon: string;
     amr?: string | null;
@@ -207,6 +214,18 @@ export async function resultadoTopGear(id: string): Promise<TopGearResultado> {
 
 export async function perfilTopGear(id: string): Promise<{ simc: string }> {
     const resposta = await fetch(`/api/topgear/${id}/perfil`);
+    if (!resposta.ok) throw await erro(resposta);
+    return resposta.json();
+}
+
+/**
+ * Grava o `.simc` otimizado no disco pelo backend e devolve o caminho.
+ *
+ * A janela do app desktop (pywebview) não tem gerenciador de download: clicar
+ * num link `blob:` não gerava arquivo nem erro.
+ */
+export async function salvarPerfilTopGear(id: string): Promise<TopGearArquivoSalvo> {
+    const resposta = await fetch(`/api/topgear/${id}/perfil/salvar`, { method: 'POST' });
     if (!resposta.ok) throw await erro(resposta);
     return resposta.json();
 }

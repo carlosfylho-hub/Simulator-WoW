@@ -8,11 +8,25 @@ export interface DropRankingItem {
     slot: string;
     item_id: number | null;
     nome_pt: string | null;
+    nome_en?: string | null;
     ilvl: number | null;
     dps: number;
     delta_pct: number;
     limiar_pct: number;
     veredito: DropVeredito;
+    /** Slug do ícone no zamimg; vem do catálogo do backend. */
+    icone?: string | null;
+    /** Atributos do item, para o tooltip. */
+    stats?: Record<string, number> | null;
+    /** Slots equivalentes onde o item foi medido (anel e berloque usam dois). */
+    slots_testados?: string[];
+}
+
+export interface DropCsvSalvo {
+    caminho: string;
+    pasta: string;
+    arquivo: string;
+    linhas: number;
 }
 
 export interface DropResult {
@@ -121,6 +135,19 @@ export async function consultarDrop(id: string): Promise<DropJob> {
 
 export async function resultadoDrop(id: string): Promise<DropResult> {
     const resposta = await fetch(`/api/droptimizer/${id}/resultado`);
+    if (!resposta.ok) throw await erro(resposta);
+    return resposta.json();
+}
+
+/**
+ * Grava o CSV no disco pelo backend e devolve o caminho.
+ *
+ * O app desktop roda numa janela pywebview sem gerenciador de download, onde
+ * clicar num link `blob:` não produz arquivo nem erro. Gravar pelo servidor
+ * funciona nos dois ambientes e o usuário recebe um caminho de verdade.
+ */
+export async function salvarCsvDrop(id: string): Promise<DropCsvSalvo> {
+    const resposta = await fetch(`/api/droptimizer/${id}/csv`, { method: 'POST' });
     if (!resposta.ok) throw await erro(resposta);
     return resposta.json();
 }

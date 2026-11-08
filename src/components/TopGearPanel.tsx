@@ -11,6 +11,7 @@ import {
     XCircle,
 } from 'lucide-react';
 import {
+    TopGearArquivoSalvo,
     TopGearEstimativa,
     TopGearHeuristica,
     TopGearJob,
@@ -24,6 +25,7 @@ import {
     perfilTopGear,
     previaPools,
     resultadoTopGear,
+    salvarPerfilTopGear,
 } from '../services/topGearService';
 import {
     carregarImportLocal,
@@ -92,6 +94,9 @@ export const TopGearPanel: React.FC<Props> = ({ scenario, setScenario }) => {
         console.info(`[topgear] ${job.id} status=${job.status}`, job.progresso ?? '');
     }, [job?.status, job?.progresso]);
     const [perfilServidor, setPerfilServidor] = useState<string>('');
+    const [salvandoPerfil, setSalvandoPerfil] = useState(false);
+    const [perfilSalvo, setPerfilSalvo] = useState<TopGearArquivoSalvo | null>(null);
+    const [erroPerfil, setErroPerfil] = useState<string | null>(null);
     const [pools, setPools] = useState<TopGearPoolsResumo | null>(null);
     const [slotsTravados, setSlotsTravados] = usePersistedState<Record<string, number>>('wowsim.topgear.slotsTravados', {});
     const [erro, setErro] = useState<string | null>(null);
@@ -358,15 +363,20 @@ export const TopGearPanel: React.FC<Props> = ({ scenario, setScenario }) => {
     // Prefer the backend profile (canonical, includes gems and omnium_talents).
     const perfilFinal = perfilServidor || perfilOtimizado;
 
-    const baixarPerfil = () => {
-        if (!perfilFinal) return;
-        const blob = new Blob([perfilFinal], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'pyrogalth-topgear.simc';
-        link.click();
-        URL.revokeObjectURL(url);
+    // Gravado pelo backend: a janela do app desktop não tem gerenciador de
+    // download, e o link `blob:` que havia aqui não produzia arquivo nem erro.
+    const baixarPerfil = async () => {
+        if (!job?.id || salvandoPerfil) return;
+        setSalvandoPerfil(true);
+        setErroPerfil(null);
+        setPerfilSalvo(null);
+        try {
+            setPerfilSalvo(await salvarPerfilTopGear(job.id));
+        } catch (e: any) {
+            setErroPerfil(e?.message || 'Não foi possível salvar o perfil.');
+        } finally {
+            setSalvandoPerfil(false);
+        }
     };
 
     const aplicarNoCampo = () => {
@@ -796,14 +806,30 @@ export const TopGearPanel: React.FC<Props> = ({ scenario, setScenario }) => {
                             <div className="inline-flex items-center gap-1">
                                 <button
                                     onClick={baixarPerfil}
-                                    className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white"
+                                    disabled={salvandoPerfil}
+                                    className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed text-xs font-semibold text-white"
                                 >
-                                    <Download className="w-3.5 h-3.5" />
-                                    <span>Baixar .simc</span>
+                                    {salvandoPerfil ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    ) : (
+                                        <Download className="w-3.5 h-3.5" />
+                                    )}
+                                    <span>{salvandoPerfil ? 'Salvando...' : 'Salvar .simc'}</span>
                                 </button>
-                                <InfoTip titulo="Baixar .simc">Baixa o perfil final pronto para colar no jogo ou no Raidbots.</InfoTip>
+                                <InfoTip titulo="Salvar .simc">Grava o perfil final em disco, pronto para colar no jogo ou no Raidbots. O caminho aparece abaixo.</InfoTip>
                             </div>
                         </div>
+                        {perfilSalvo && (
+                            <div className="mt-2 text-[11px] text-emerald-300 bg-emerald-950/30 border border-emerald-800/60 rounded-lg px-3 py-2">
+                                <span className="font-semibold">Salvo em</span>{' '}
+                                <span className="font-mono break-all text-emerald-200">{perfilSalvo.caminho}</span>
+                            </div>
+                        )}
+                        {erroPerfil && (
+                            <div className="mt-2 text-[11px] text-rose-300 bg-rose-950/30 border border-rose-800/60 rounded-lg px-3 py-2">
+                                {erroPerfil}
+                            </div>
+                        )}
                     </div>
 
                     {/* Métricas */}
