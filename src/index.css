@@ -1,1 +1,15 @@
 @import "tailwindcss";
+
+@keyframes wowsim-indeterminate {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(400%);
+    }
+}
+
+.animate-wowsim-indeterminate {
+    animation: wowsim-indeterminate 1.3s ease-in-out infinite;
+}

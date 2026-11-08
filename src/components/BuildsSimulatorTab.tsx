@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Shield, Swords, Sparkles, Copy, Check, Layers, Zap, HeartPulse, MapPin, Eye } from 'lucide-react';
 import { ActiveSpec } from '../types/wow';
 import { useItemTooltip } from '../context/TooltipContext';
+import { getItemById } from '../data/items';
 
 interface BuildsSimulatorProps {
   externalSpecId?: ActiveSpec;
@@ -93,7 +94,7 @@ const BUILDS_DATABASE: SpecData[] = [
             effect1: 'Forro de Arcanotrama [240167] (Aumenta Intelecto com vida alta)',
             slot2: 'Mão Secundária',
             item2: 'Lanterna de Aln\'hara [245769] (Escrivania)',
-            effect2: 'Signo de Negraluna: Sangue [240170] (Autocura passiva contínua)'
+            effect2: 'Pedra Ritual do Caçador [273060] (101 de secundário aleatório; +50% em Caça às Presas)'
           },
           consumablesOfficial: {
             flask: 'Frasco dos Magísteres [241323] (+Intelecto)',
@@ -112,7 +113,7 @@ const BUILDS_DATABASE: SpecData[] = [
             { slot: 'Pernas', itemPt: 'Perneiras de Serpentes Entrelaçadas', itemEn: 'Entwined Serpent Leggings', id: 273786, icon: 'inv_pant_cloth_outdooramaniloa_c_01', heroIlvl: 321, mythIlvl: 334, sourceType: 'mplus', sourceLocation: 'Masmorra M+: Altar das Presas (Altar of Fangs)', roleTag: 'Matéria de Tier (Catalisador)', notes: 'Crítico + Aceleração · Converte em Calças de Tier 4pc' },
             { slot: 'Costas', itemPt: 'Mortalha do Inferninho', itemEn: 'Speakeasy Shroud', id: 251132, icon: 'inv_cape_leather_dungeonharronir_c_01', heroIlvl: 321, mythIlvl: 334, sourceType: 'mplus', sourceLocation: 'Masmorra M+: Travessa dos Assassinos (Murder Row)', roleTag: 'BiS Direto', notes: 'BiS Costas: Crítico + Maestria' },
             { slot: 'Arma 1M', itemPt: 'Canalizador de Lumineira Polido', itemEn: 'Gleamline Channeller', id: 273778, icon: 'inv_knife_1h_zuljin_d_01', heroIlvl: 321, mythIlvl: 334, sourceType: 'mplus', sourceLocation: 'Masmorra M+: Altar das Presas (Altar of Fangs)', roleTag: 'BiS Direto', notes: 'Adaga de Intelecto · Aceleração + Maestria' },
-            { slot: 'Mão Sec.', itemPt: 'Lanterna de Aln\'hara', itemEn: "Aln'hara Lantern", id: 245769, icon: 'inv_offhand_1h_raidtroll_d_01', heroIlvl: 318, mythIlvl: 331, sourceType: 'craft', sourceLocation: 'Ordem de Criação: Escrivania (Centelha de Marés)', roleTag: 'Embelezamento Artesanal', notes: 'Embelezamento: Signo de Negraluna: Sangue [240170]' },
+            { slot: 'Mão Sec.', itemPt: 'Lanterna de Aln\'hara', itemEn: "Aln'hara Lantern", id: 245769, icon: 'inv_offhand_1h_raidtroll_d_01', heroIlvl: 318, mythIlvl: 331, sourceType: 'craft', sourceLocation: 'Ordem de Criação: Escrivania (Centelha de Marés)', roleTag: 'Embelezamento Artesanal', notes: 'Embelezamento: Pedra Ritual do Caçador [273060]' },
             { slot: 'Berloque 1', itemPt: 'Emblema Tempestuoso de Dazar', itemEn: 'Stormbound Emblem of Dazar', id: 273649, icon: 'inv_7_0raid_necklace_14a', heroIlvl: 328, mythIlvl: 341, sourceType: 'mplus', sourceLocation: 'Masmorra M+: Repouso do Rei (King\'s Rest)', roleTag: 'BiS Direto', notes: 'Uso ativo: +1.082 de Aceleração por 20 s (Tier S absoluto)' },
             { slot: 'Berloque 2', itemPt: 'Nó de Serpentes Contorcidas', itemEn: 'Knot of Writhing Serpents', id: 273794, icon: 'inv_121_trinket_dungeon_ulatek_writhe', heroIlvl: 328, mythIlvl: 341, sourceType: 'mplus', sourceLocation: 'Masmorra M+: Altar das Presas (Altar of Fangs)', roleTag: 'BiS Direto', notes: 'Passivo constante de Intelecto (Regra R4: 1 ativo + 1 passivo)' }
           ],
@@ -212,7 +213,7 @@ const BUILDS_DATABASE: SpecData[] = [
             effect1: 'Forro de Arcanotrama [240167]',
             slot2: 'Mão Secundária',
             item2: 'Lanterna de Aln\'hara [245769] (Escrivania)',
-            effect2: 'Signo de Negraluna: Sangue [240170]'
+            effect2: 'Pedra Ritual do Caçador [273060]'
           },
           consumablesOfficial: {
             flask: 'Frasco da Resistência Talassiana (Sobrevivência)',
@@ -628,7 +629,7 @@ const BUILDS_DATABASE: SpecData[] = [
             effect1: 'Forro de Arcanotrama [240167] (+Intelecto com vida alta)',
             slot2: 'Mão Secundária',
             item2: 'Lanterna de Aln\'hara [245769] (Escrivania)',
-            effect2: 'Signo de Negraluna: Sangue [240170] (Dano contínuo e drenagem de vida para sustentação solo)'
+            effect2: 'Pedra Ritual do Caçador [273060] (alternativa: Signo de Negraluna: Sangue [240170])'
           },
           consumablesOfficial: {
             flask: 'Frasco dos Magísteres [241323] (+Intelecto)',
@@ -647,7 +648,7 @@ const BUILDS_DATABASE: SpecData[] = [
             { slot: 'Pernas', itemPt: 'Calções do Acordo Célere', itemEn: 'Swift Accord Breeches', id: 251130, icon: 'inv_pant_leather_dungeonharronir_c_01', heroIlvl: 321, mythIlvl: 334, sourceType: 'mplus', sourceLocation: 'Masmorra M+: Travessa dos Assassinos (Murder Row)', roleTag: 'Matéria de Tier (Catalisador)', notes: 'Fecha o 4pc de Tier 2057 no Catalisador' },
             { slot: 'Botas', itemPt: 'Calçados do Agente de Luaprata', itemEn: "Silvermoon Agent's Sneakers", id: 244569, icon: 'inv_boot_leather_outdooramaniloa_c_01', heroIlvl: 318, mythIlvl: 331, sourceType: 'craft', sourceLocation: 'Ordem de Criação: Couraria (Centelha de Marés)', roleTag: 'Upgrade de Secundários', notes: 'Missiva Febre Ardente (Aceleração + Maestria)' },
             { slot: 'Arma 1M', itemPt: 'Canalizador de Lumineira Polido', itemEn: 'Gleamline Channeller', id: 273778, icon: 'inv_knife_1h_zuljin_d_01', heroIlvl: 321, mythIlvl: 334, sourceType: 'mplus', sourceLocation: 'Masmorra M+: Altar das Presas (Altar of Fangs)', roleTag: 'BiS Direto', notes: '1H Intelecto para druida (1H + Lanterna é superior a cajado)' },
-            { slot: 'Mão Sec.', itemPt: 'Lanterna de Aln\'hara', itemEn: "Aln'hara Lantern", id: 245769, icon: 'inv_offhand_1h_raidtroll_d_01', heroIlvl: 318, mythIlvl: 331, sourceType: 'craft', sourceLocation: 'Ordem de Criação: Escrivania (Centelha de Marés)', roleTag: 'Embelezamento Artesanal', notes: 'Embelezamento 2: Signo de Negraluna: Sangue [240170]' },
+            { slot: 'Mão Sec.', itemPt: 'Lanterna de Aln\'hara', itemEn: "Aln'hara Lantern", id: 245769, icon: 'inv_offhand_1h_raidtroll_d_01', heroIlvl: 318, mythIlvl: 331, sourceType: 'craft', sourceLocation: 'Ordem de Criação: Escrivania (Centelha de Marés)', roleTag: 'Embelezamento Artesanal', notes: 'Embelezamento 2: Pedra Ritual do Caçador [273060]' },
             { slot: 'Berloque 1', itemPt: 'Ampola Torpe de Peçonha Volátil', itemEn: 'Vile Flask of Volatile Venom', id: 273796, icon: 'inv_121_trinket_dungeon_ulatek_vile', heroIlvl: 328, mythIlvl: 341, sourceType: 'mplus', sourceLocation: 'Masmorra M+: Altar das Presas (Altar of Fangs)', roleTag: 'BiS Direto', notes: 'Melhor berloque on-use de M+: +992 secundário por 15 s' },
             { slot: 'Berloque 2', itemPt: 'Nó de Serpentes Contorcidas', itemEn: 'Knot of Writhing Serpents', id: 273794, icon: 'inv_121_trinket_dungeon_ulatek_writhe', heroIlvl: 328, mythIlvl: 341, sourceType: 'mplus', sourceLocation: 'Masmorra M+: Altar das Presas (Altar of Fangs)', roleTag: 'BiS Direto', notes: 'Passivo BiS sem raide' }
           ],
@@ -707,7 +708,7 @@ const BUILDS_DATABASE: SpecData[] = [
             effect1: 'Forro de Arcanotrama [240167]',
             slot2: 'Mão Secundária',
             item2: 'Lanterna de Aln\'hara [245769]',
-            effect2: 'Signo de Negraluna: Sangue [240170]'
+            effect2: 'Pedra Ritual do Caçador [273060]'
           },
           consumablesOfficial: {
             flask: 'Frasco da Resistência Talassiana',
@@ -785,7 +786,7 @@ const BUILDS_DATABASE: SpecData[] = [
             effect1: 'Forro de Arcanotrama [240167]',
             slot2: 'Mão Secundária / Cinto',
             item2: 'Lanterna de Aln\'hara [245769] ou Banda do Mártir [239649]',
-            effect2: 'Signo de Negraluna: Sangue [240170] (Leech passivo)'
+            effect2: 'Pedra Ritual do Caçador [273060] (alternativa: Signo de Negraluna: Sangue [240170])'
           },
           consumablesOfficial: {
             flask: 'Frasco dos Magísteres [241323]',
@@ -804,7 +805,7 @@ const BUILDS_DATABASE: SpecData[] = [
             { slot: 'Cinto', itemPt: 'Atadura do Éter Etérea', itemEn: 'Ethereal Netherwrap', id: 251222, icon: 'inv_belt_cloth_dungeonharronir_c_01', heroIlvl: 321, mythIlvl: 334, sourceType: 'mplus', sourceLocation: 'Masmorra M+: Arena da Chaga do Caos (Voidscar Arena)', roleTag: 'BiS Direto', notes: 'BiS Aceleração 95 · Crítico 56' },
             { slot: 'Capa', itemPt: 'Mortalha do Inferninho', itemEn: 'Speakeasy Shroud', id: 251132, icon: 'inv_cape_leather_dungeonharronir_c_01', heroIlvl: 321, mythIlvl: 334, sourceType: 'mplus', sourceLocation: 'Masmorra M+: Travessa dos Assassinos (Murder Row)', roleTag: 'BiS Direto', notes: 'BiS Capa da Temporada 2' },
             { slot: 'Arma 1M', itemPt: 'Canalizador de Lumineira Polido', itemEn: 'Gleamline Channeller', id: 273778, icon: 'inv_knife_1h_zuljin_d_01', heroIlvl: 321, mythIlvl: 334, sourceType: 'mplus', sourceLocation: 'Masmorra M+: Altar das Presas (Altar of Fangs)', roleTag: 'BiS Direto', notes: 'Adaga de Intelecto · Aceleração + Maestria' },
-            { slot: 'Mão Sec.', itemPt: 'Lanterna de Aln\'hara', itemEn: "Aln'hara Lantern", id: 245769, icon: 'inv_offhand_1h_raidtroll_d_01', heroIlvl: 318, mythIlvl: 331, sourceType: 'craft', sourceLocation: 'Ordem de Criação: Escrivania (Centelha de Marés)', roleTag: 'Embelezamento Artesanal', notes: 'Signo de Negraluna: Sangue [240170]' },
+            { slot: 'Mão Sec.', itemPt: 'Lanterna de Aln\'hara', itemEn: "Aln'hara Lantern", id: 245769, icon: 'inv_offhand_1h_raidtroll_d_01', heroIlvl: 318, mythIlvl: 331, sourceType: 'craft', sourceLocation: 'Ordem de Criação: Escrivania (Centelha de Marés)', roleTag: 'Embelezamento Artesanal', notes: 'Pedra Ritual do Caçador [273060]' },
             { slot: 'Berloque 1', itemPt: 'Ampola Torpe de Peçonha Volátil', itemEn: 'Vile Flask of Volatile Venom', id: 273796, icon: 'inv_121_trinket_dungeon_ulatek_vile', heroIlvl: 328, mythIlvl: 341, sourceType: 'mplus', sourceLocation: 'Masmorra M+: Altar das Presas (Altar of Fangs)', roleTag: 'BiS Direto', notes: 'Melhor berloque de burst ativo em M+' },
             { slot: 'Berloque 2', itemPt: 'Nó de Serpentes Contorcidas', itemEn: 'Knot of Writhing Serpents', id: 273794, icon: 'inv_121_trinket_dungeon_ulatek_writhe', heroIlvl: 328, mythIlvl: 341, sourceType: 'mplus', sourceLocation: 'Masmorra M+: Altar das Presas (Altar of Fangs)', roleTag: 'BiS Direto', notes: 'Passivo BiS constante de Intelecto' }
           ],
@@ -863,7 +864,7 @@ const BUILDS_DATABASE: SpecData[] = [
             effect1: 'Forro de Arcanotrama [240167]',
             slot2: 'Mão Secundária',
             item2: 'Lanterna de Aln\'hara [245769]',
-            effect2: 'Signo de Negraluna: Sangue [240170]'
+            effect2: 'Pedra Ritual do Caçador [273060]'
           },
           consumablesOfficial: {
             flask: 'Frasco da Resistência Talassiana',
@@ -928,12 +929,15 @@ export const BuildsSimulatorTab: React.FC<BuildsSimulatorProps> = ({ externalSpe
   // Global Real-time Tooltip Context (Raidbots UX)
   const { showTooltip, updateTooltipPosition, hideTooltip, pinTooltip } = useItemTooltip();
 
+  const iconDoItem = (gear: GearDropInfo): string =>
+    gear.icon || getItemById(gear.id)?.icon || 'inv_misc_questionmark';
+
   const handleItemHover = (gear: GearDropInfo, e: React.MouseEvent) => {
     showTooltip(gear.id, e, {
       slot: gear.slot,
       itemPt: gear.itemPt,
       itemEn: gear.itemEn,
-      icon: gear.icon,
+      icon: iconDoItem(gear),
       heroIlvl: gear.heroIlvl,
       mythIlvl: gear.mythIlvl,
       track: selectedTrack,
@@ -956,7 +960,7 @@ export const BuildsSimulatorTab: React.FC<BuildsSimulatorProps> = ({ externalSpe
       slot: gear.slot,
       itemPt: gear.itemPt,
       itemEn: gear.itemEn,
-      icon: gear.icon,
+      icon: iconDoItem(gear),
       heroIlvl: gear.heroIlvl,
       mythIlvl: gear.mythIlvl,
       track: selectedTrack,
@@ -1023,11 +1027,10 @@ export const BuildsSimulatorTab: React.FC<BuildsSimulatorProps> = ({ externalSpe
               <button
                 key={sit.id}
                 onClick={() => setSelectedSituation(sit.id as any)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold border transition ${
-                  isSelected
-                    ? sit.color + ' shadow-md'
-                    : 'bg-zinc-900/80 border-zinc-800 text-zinc-400 hover:text-zinc-200'
-                }`}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold border transition ${isSelected
+                  ? sit.color + ' shadow-md'
+                  : 'bg-zinc-900/80 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                  }`}
               >
                 <Icon className="w-4 h-4" />
                 <span>{sit.label}</span>
@@ -1046,11 +1049,10 @@ export const BuildsSimulatorTab: React.FC<BuildsSimulatorProps> = ({ externalSpe
             <button
               key={s.specId}
               onClick={() => handleSelectSpec(s.specId)}
-              className={`px-3 py-1.5 rounded-lg transition font-medium ${
-                selectedSpecId === s.specId
-                  ? 'bg-purple-600 text-white font-bold shadow'
-                  : 'bg-zinc-950 text-zinc-400 hover:text-zinc-200 border border-zinc-850'
-              }`}
+              className={`px-3 py-1.5 rounded-lg transition font-medium ${selectedSpecId === s.specId
+                ? 'bg-purple-600 text-white font-bold shadow'
+                : 'bg-zinc-950 text-zinc-400 hover:text-zinc-200 border border-zinc-850'
+                }`}
             >
               {s.specName}
             </button>
@@ -1062,22 +1064,20 @@ export const BuildsSimulatorTab: React.FC<BuildsSimulatorProps> = ({ externalSpe
           <span className="text-zinc-400 text-[11px] font-semibold pl-1">Trilha de Ilvl:</span>
           <button
             onClick={() => setSelectedTrack('hero')}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
-              selectedTrack === 'hero'
-                ? 'bg-blue-600 text-white shadow'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition ${selectedTrack === 'hero'
+              ? 'bg-blue-600 text-white shadow'
+              : 'text-zinc-400 hover:text-zinc-200'
+              }`}
             title="Trilha Herói (321–328, Craft 318): Muito mais rápida de farmar, recomendada para AoE e Delves!"
           >
             Trilha Herói (321–328)
           </button>
           <button
             onClick={() => setSelectedTrack('myth')}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
-              selectedTrack === 'myth'
-                ? 'bg-amber-500 text-zinc-950 font-black shadow'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition ${selectedTrack === 'myth'
+              ? 'bg-amber-500 text-zinc-950 font-black shadow'
+              : 'text-zinc-400 hover:text-zinc-200'
+              }`}
             title="Trilha Mito (334–341, Craft 331): Teto absoluto da temporada (exige cristas míticas)."
           >
             Trilha Mito (334–341)
@@ -1226,6 +1226,7 @@ export const BuildsSimulatorTab: React.FC<BuildsSimulatorProps> = ({ externalSpe
                 <div className="space-y-2.5">
                   {build.gearList.map((g, idx) => {
                     const ilvl = selectedTrack === 'hero' ? g.heroIlvl : g.mythIlvl;
+                    const iconSlug = iconDoItem(g);
                     return (
                       <div
                         key={idx}
@@ -1238,7 +1239,7 @@ export const BuildsSimulatorTab: React.FC<BuildsSimulatorProps> = ({ externalSpe
                         {/* Line 1: Icon, Slot Badge, Item Name & Ilvl */}
                         <div className="flex items-center space-x-2.5">
                           <img
-                            src={`https://wow.zamimg.com/images/wow/icons/medium/${g.icon}.jpg`}
+                            src={`https://wow.zamimg.com/images/wow/icons/medium/${iconSlug}.jpg`}
                             alt={g.itemPt}
                             className="w-9 h-9 rounded-lg border-2 border-purple-500/80 flex-shrink-0 shadow-md bg-zinc-950 group-hover:border-purple-400 group-hover:scale-105 transition"
                             onError={(e) => {
@@ -1270,15 +1271,14 @@ export const BuildsSimulatorTab: React.FC<BuildsSimulatorProps> = ({ externalSpe
                             <span><strong>Fonte:</strong> {g.sourceLocation}</span>
                           </span>
 
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                            g.roleTag === 'BiS Direto'
-                              ? 'bg-amber-950/90 text-amber-300 border border-amber-700/60'
-                              : g.roleTag === 'Matéria de Tier (Catalisador)'
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${g.roleTag === 'BiS Direto'
+                            ? 'bg-amber-950/90 text-amber-300 border border-amber-700/60'
+                            : g.roleTag === 'Matéria de Tier (Catalisador)'
                               ? 'bg-purple-950/90 text-purple-300 border border-purple-700/60'
                               : g.roleTag === 'Embelezamento Artesanal'
-                              ? 'bg-emerald-950/90 text-emerald-300 border border-emerald-700/60'
-                              : 'bg-cyan-950/90 text-cyan-300 border border-cyan-700/60'
-                          }`}>
+                                ? 'bg-emerald-950/90 text-emerald-300 border border-emerald-700/60'
+                                : 'bg-cyan-950/90 text-cyan-300 border border-cyan-700/60'
+                            }`}>
                             {g.roleTag}
                           </span>
                         </div>

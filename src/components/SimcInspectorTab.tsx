@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sparkles, Clipboard, ArrowRight, ShieldCheck, AlertCircle, RefreshCw, Wand2, Share2, ArrowLeftRight, Layers } from 'lucide-react';
 import { ParsedSimcProfile, WowItem, ItemSlot, ActiveSpec, ParsedSimcItem, CombatScenario } from '../types/wow';
 import { parseSimcString, SAMPLE_SIMC_STRING } from '../engine/simcParser';
@@ -11,6 +11,11 @@ import { useItemTooltip } from '../context/TooltipContext';
 import { SimcPerformanceSummaryCard } from './SimcPerformanceSummaryCard';
 import { SimcExportModal } from './SimcExportModal';
 import { SimcSideBySideComparison } from './SimcSideBySideComparison';
+import {
+  carregarImportLocal,
+  carregarImportRemoto,
+  salvarImport,
+} from '../services/simcStorage';
 
 interface Props {
   scenario: CombatScenario;
@@ -38,8 +43,10 @@ const ORDERED_SLOTS: { slot: ItemSlot; label: string }[] = [
 ];
 
 export const SimcInspectorTab: React.FC<Props> = ({ scenario, currentSpec }) => {
-  const [simcInput, setSimcInput] = useState<string>(SAMPLE_SIMC_STRING);
-  const [profile, setProfile] = useState<ParsedSimcProfile>(() => parseSimcString(SAMPLE_SIMC_STRING));
+  const [simcInput, setSimcInput] = useState<string>(
+    () => carregarImportLocal() || SAMPLE_SIMC_STRING
+  );
+  const [profile, setProfile] = useState<ParsedSimcProfile>(() => parseSimcString(simcInput));
   const [activeAudit, setActiveAudit] = useState<any | null>(null);
   const [activeSim, setActiveSim] = useState<{
     base: string;
@@ -54,6 +61,29 @@ export const SimcInspectorTab: React.FC<Props> = ({ scenario, currentSpec }) => 
 
   const { showTooltip, updateTooltipPosition, hideTooltip, pinTooltip } = useItemTooltip();
 
+  // On start, prefer the backend copy (survives the random desktop port).
+  useEffect(() => {
+    let ativo = true;
+    carregarImportRemoto().then((texto) => {
+      if (!ativo || !texto) return;
+      if (!simcInput || simcInput === SAMPLE_SIMC_STRING) {
+        setSimcInput(texto);
+        setProfile(parseSimcString(texto));
+      }
+    });
+    return () => {
+      ativo = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist the last import (local cache immediately, backend debounced).
+  useEffect(() => {
+    if (!simcInput || simcInput === SAMPLE_SIMC_STRING) return;
+    const timer = window.setTimeout(() => salvarImport(simcInput), 600);
+    return () => window.clearTimeout(timer);
+  }, [simcInput]);
+
   const handleApplySetupB = (newEquipped: Partial<Record<ItemSlot, ParsedSimcItem>>) => {
     setProfile(prev => ({
       ...prev,
@@ -65,6 +95,7 @@ export const SimcInspectorTab: React.FC<Props> = ({ scenario, currentSpec }) => 
   const handleParse = () => {
     const res = parseSimcString(simcInput);
     setProfile(res);
+    salvarImport(simcInput);
   };
 
   const handleLoadSample = () => {
@@ -99,7 +130,7 @@ export const SimcInspectorTab: React.FC<Props> = ({ scenario, currentSpec }) => 
     const otherTrinketItem = otherTrinketParsed ? getItemById(otherTrinketParsed.id) : null;
 
     const auditRes = evaluateSubstitution(equippedItem, cand, {
-      targetScenario: scenario,
+      targetScenario: scenario as any,
       activeTierPiecesCount: tierCount || 4,
       equippedEmbellishmentsCount: embellishmentsCount || 2,
       otherEquippedTrinket: otherTrinketItem,
@@ -351,7 +382,7 @@ export const SimcInspectorTab: React.FC<Props> = ({ scenario, currentSpec }) => 
               source: 'delve' as const,
               sourceDetail: 'Importado via SimC'
             })}
-            scenario={scenario}
+            scenario={scenario as any}
           />
 
           {/* Equipped Gear Paperdoll Layout */}

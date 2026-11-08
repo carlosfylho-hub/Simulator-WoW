@@ -89,3 +89,80 @@ export const COMBAT_SCENARIOS_LIST: CombatScenarioMeta[] = [
   COMBAT_SCENARIOS.dungeon_slice,
   COMBAT_SCENARIOS.cleave_aoe
 ];
+
+/**
+ * Rótulos e descrições PT-BR dos Fight Styles aceitos pelo backend
+ * (ver `Cenario` em topgear/models.py e `estilo_de_luta` em runner.py).
+ * Espelham os cenários do Raidbots. Usados nos painéis Droptimizer e Top Gear.
+ */
+export const ROTULO_CENARIO: Record<string, string> = {
+  patchwerk: 'Patchwerk — alvo único, sem movimento',
+  dungeon_slice: 'Dungeon Slice — M+ dinâmica',
+  hectic_add_cleave: 'Hectic Add Cleave — adds caóticos',
+  light_movement: 'Light Movement — movimento leve',
+  heavy_movement: 'Heavy Movement — muito movimento',
+  casting_patchwerk: 'Casting Patchwerk — com conjurações',
+  cleave_add: 'Cleave Add — alvo + adds recorrentes',
+  helter_skelter: 'Helter Skelter — caos constante',
+  raid: 'Raide — vários alvos e fases',
+  mplus: 'M+ — masmorra mítica',
+  cleave_aoe: 'Cleave — 3 a 5 alvos',
+  delve_rooms: 'Delve — salas com grupos de mobs',
+  delve_boss: 'Delve — chefe único',
+};
+
+export const DESCRICAO_CENARIO: Record<string, string> = {
+  patchwerk:
+    'Um chefe parado, sem movimento nem adds: mede o DPS sustentado puro. Ideal para comparar itens sem interferência de mecânicas.',
+  dungeon_slice:
+    'Puxadas de mobs e chefes com intervalos e janelas de cooldown, como numa Mítica+. Bom para pacotes e burst.',
+  hectic_add_cleave:
+    'Alvo único com adds frequentes e caóticos; mistura dano single-target e em área.',
+  light_movement:
+    'Alvo único com movimento leve; mede a perda de DPS quando é preciso se mover um pouco.',
+  heavy_movement:
+    'Alvo único com muito movimento; pune rotações que dependem de ficar parado.',
+  casting_patchwerk:
+    'Alvo único com pausas para conjuração; considera o tempo parado para castar.',
+  cleave_add:
+    'Alvo principal com adds recorrentes; valoriza dano em área e clivagem.',
+  helter_skelter:
+    'Alvo único com eventos caóticos constantes (mecânicas aleatórias); testa adaptabilidade da rotação.',
+  raid:
+    'Luta de raide com alvos e fases variadas; bom para escolher um conjunto de uso geral.',
+  mplus:
+    'Cenário de masmorra mítica, com grupos de mobs e chefes ao longo da run.',
+  cleave_aoe:
+    'Vários inimigos simultâneos (3 a 5). Valoriza dano em área, DoT espalhado e Maestria.',
+  delve_rooms:
+    'Salas de delve com grupos de mobs; foco em dano em área moderado.',
+  delve_boss:
+    'Chefe de delve em alvo único; foco em dano sustentado contra um alvo.',
+};
+
+export interface OpcaoCenario {
+  valor: string;
+  rotulo: string;
+  descricao: string;
+}
+
+/** Opções exibidas nos painéis Droptimizer/Top Gear (estilo Raidbots). */
+export const CENARIOS_DROPDOWN: OpcaoCenario[] = [
+  'patchwerk',
+  'dungeon_slice',
+  'hectic_add_cleave',
+  'light_movement',
+  'heavy_movement',
+  'casting_patchwerk',
+  'cleave_add',
+  'helter_skelter',
+  'raid',
+  'mplus',
+  'cleave_aoe',
+  'delve_rooms',
+  'delve_boss',
+].map((valor) => ({
+  valor,
+  rotulo: ROTULO_CENARIO[valor],
+  descricao: DESCRICAO_CENARIO[valor],
+}));

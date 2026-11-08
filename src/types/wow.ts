@@ -47,6 +47,9 @@ export interface WowItem {
   effect?: string;
   cantrip?: boolean;
   embellished?: boolean;
+  embellishmentName?: string;
+  embellishmentRecommendation?: string;
+  acceptsEmbellishment?: boolean;
   isTier?: boolean;
   tierPiece?: string;
   isTrinketOnUse?: boolean;

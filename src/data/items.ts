@@ -302,6 +302,8 @@ export const WOW_ITEMS: WowItem[] = [
     isCrafted: true,
     craftMissivesAllowed: true,
     embellished: true,
+    embellishmentName: 'Forro de Arcanotrama [240167]',
+    embellishmentRecommendation: 'Forro de Arcanotrama',
     effect: 'Embelezamento recomendado: Forro de Arcanotrama (240167). Secundários via Missiva: Aceleração + Maestria.',
     notes: 'BiS absoluto para Bruxo e Sacerdote em pulsos. Não possui secundários fixos (definidos por missiva).',
     icon: 'inv_bracer_cloth_questbloodelf_b_01',
@@ -320,7 +322,10 @@ export const WOW_ITEMS: WowItem[] = [
     stats: { intellect: 91, stamina: 1800, haste: 88, mastery: 48 },
     isCrafted: true,
     craftMissivesAllowed: true,
-    notes: 'Cinto craftado de Alfaiataria. Permite encaixe de missivas customizadas.',
+    embellished: true,
+    embellishmentName: 'Forro de Arcanotrama [240167]',
+    embellishmentRecommendation: 'Forro de Arcanotrama',
+    notes: 'Cinto craftado de Alfaiataria. Permite encaixe de missivas customizadas e Forro de Arcanotrama.',
     icon: 'inv_belt_cloth_questbloodelf_b_01',
     quality: 'epic'
   },
@@ -370,7 +375,10 @@ export const WOW_ITEMS: WowItem[] = [
     stats: { stamina: 1800, haste: 112, mastery: 64 },
     isCrafted: true,
     craftMissivesAllowed: true,
-    notes: 'Anel craftado de Joalheria. Pode ser forjado com Diamante Prismático ou missivas de secundários.',
+    embellished: true,
+    embellishmentName: 'Amolita Polida',
+    embellishmentRecommendation: 'Amolita Polida',
+    notes: 'Anel craftado de Joalheria. Engaste prismático e embelezamento de acessório (Amolita Polida).',
     icon: 'inv_12_profession_jewelcrafting_ring4_gold',
     quality: 'epic'
   },
@@ -388,8 +396,10 @@ export const WOW_ITEMS: WowItem[] = [
     isCrafted: true,
     craftMissivesAllowed: true,
     embellished: true,
-    effect: 'Embelezamento recomendado: Signo de Negraluna: Sangue (240170) ou segundo Forro de Arcanotrama. Secundários via Missiva: Aceleração + Maestria.',
-    notes: 'Mão secundária BiS craftada. Fecha os 2 efeitos de embelezamento permitidos na temporada.',
+    embellishmentName: 'Pedra Ritual do Caçador [273060]',
+    embellishmentRecommendation: 'Pedra Ritual do Caçador',
+    effect: 'Embelezamento recomendado: Pedra Ritual do Caçador (273060) — 101 de secundário aleatório por 15 s, +50% em Caça às Presas. Secundários via Missiva: Aceleração + Maestria.',
+    notes: 'Mão secundária BiS craftada. Murlok S2: 36/50 usam Pedra Ritual do Caçador; Signo de Sangue é alternativa.',
     icon: 'inv_offhand_1h_dungeonharronir_c_01',
     quality: 'epic'
   },
@@ -1026,6 +1036,15 @@ export interface CatalogItemLite {
   id: number;
   nome_pt?: string | null;
   nome_en?: string | null;
+  slot?: string | null;
+  ilvl?: number | null;
+  craftado?: boolean;
+  embellished?: boolean;
+  embelezado_embutido?: boolean;
+  aceita_embelezamento?: boolean;
+  embelezamento_recomendado?: string | null;
+  limite_embelezamentos?: number | null;
+  icon?: string | null;
 }
 
 export function aplicarCatalogo(itens: CatalogItemLite[]): number {
@@ -1034,6 +1053,19 @@ export function aplicarCatalogo(itens: CatalogItemLite[]): number {
     const patch: Partial<WowItem> = {};
     if (item.nome_pt) patch.namePt = item.nome_pt;
     if (item.nome_en) patch.nameEn = item.nome_en;
+    if (item.slot) patch.slot = item.slot as ItemSlot;
+    if (typeof item.ilvl === 'number') patch.ilvl = item.ilvl;
+    if (item.icon) patch.icon = item.icon;
+    if (item.craftado) patch.isCrafted = true;
+    // Never clear a curated local embellishment flag with a catalog "false":
+    // several craftable bases are used with an optional embellishment in the
+    // recommended builds even though the base recipe has none built in.
+    if (item.embellished) patch.embellished = true;
+    if (item.aceita_embelezamento) patch.acceptsEmbellishment = true;
+    if (item.embelezamento_recomendado) {
+      patch.embellishmentRecommendation = item.embelezamento_recomendado;
+      patch.embellishmentName = item.embelezamento_recomendado;
+    }
     if (Object.keys(patch).length === 0) continue;
     const atual = CATALOG_OVERRIDES.get(item.id) || {};
     CATALOG_OVERRIDES.set(item.id, { ...atual, ...patch });
@@ -1042,11 +1074,37 @@ export function aplicarCatalogo(itens: CatalogItemLite[]): number {
   return aplicados;
 }
 
+export function aplicarIcones(icones: Record<string, string>): number {
+  let aplicados = 0;
+  for (const [chave, icon] of Object.entries(icones)) {
+    const id = Number(chave);
+    if (!Number.isFinite(id) || !icon) continue;
+    const atual = CATALOG_OVERRIDES.get(id) || {};
+    CATALOG_OVERRIDES.set(id, { ...atual, icon });
+    aplicados++;
+  }
+  return aplicados;
+}
+
 export function getItemById(id: number): WowItem | undefined {
   const base = WOW_ITEMS.find(item => item.id === id);
   const override = CATALOG_OVERRIDES.get(id);
-  if (base && override) return { ...base, ...override };
-  return base;
+  if (base) return override ? { ...base, ...override } : base;
+  // Items outside the static list (delve/craft/raid) still get name and icon
+  // from the Python catalog overrides; synthesise a minimal item so the UI
+  // never falls back to "Item <id>" when the backend knows the item.
+  if (!override) return undefined;
+  const nome = override.namePt ?? override.nameEn ?? `Item ${id}`;
+  return {
+    id,
+    namePt: override.namePt ?? nome,
+    nameEn: override.nameEn ?? nome,
+    slot: (override.slot as ItemSlot) ?? 'head',
+    ilvl: override.ilvl ?? 0,
+    source: 'vendor',
+    sourceDetail: 'Catálogo',
+    ...override,
+  } as WowItem;
 }
 
 export function getItemsBySlot(slot: string): WowItem[] {

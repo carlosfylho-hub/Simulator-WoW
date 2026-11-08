@@ -159,9 +159,40 @@ export const WowItemTooltip: React.FC<Props> = ({ tooltipData, position, pinnedI
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             <span>Único-equipado: Embelezado (2)</span>
           </div>
-          {item.embellishmentName && (
+          {(item.embellishmentName || item.embellishmentRecommendation) && (
             <div className="text-purple-300 font-medium">
-              Efeito: {item.embellishmentName}
+              Efeito: {item.embellishmentName || item.embellishmentRecommendation}
+            </div>
+          )}
+          {item.embellishmentDescription && (
+            <div className="text-zinc-300 leading-snug">
+              {item.embellishmentDescription}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Crafted item without a built-in embellishment */}
+      {!item.embellished && item.isCrafted && (
+        <div className="py-2 border-b border-zinc-800/80 space-y-1 text-[11px]">
+          <div className="text-amber-300 font-bold flex items-center space-x-1">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>Craftado — pode receber embelezamento (máx. 2)</span>
+          </div>
+          {item.embellishmentRecommendation ? (
+            <>
+              <div className="text-purple-300 font-medium">
+                Recomendado: {item.embellishmentRecommendation}
+              </div>
+              {item.embellishmentDescription && (
+                <div className="text-zinc-300 leading-snug">
+                  {item.embellishmentDescription}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-zinc-400">
+              Este craft aceita um reagente de embelezamento opcional; sem ele, não conta para o limite de 2 efeitos.
             </div>
           )}
         </div>
@@ -186,13 +217,12 @@ export const WowItemTooltip: React.FC<Props> = ({ tooltipData, position, pinnedI
 
         {item.roleTag && (
           <div className="pl-4 pt-0.5">
-            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${
-              item.roleTag.includes('BiS')
-                ? 'bg-amber-950/90 text-amber-300 border border-amber-700/60'
-                : item.roleTag.includes('Catalisador') || item.roleTag.includes('Tier')
+            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${item.roleTag.includes('BiS')
+              ? 'bg-amber-950/90 text-amber-300 border border-amber-700/60'
+              : item.roleTag.includes('Catalisador') || item.roleTag.includes('Tier')
                 ? 'bg-purple-950/90 text-purple-300 border border-purple-700/60'
                 : 'bg-cyan-950/90 text-cyan-300 border border-cyan-700/60'
-            }`}>
+              }`}>
               {item.roleTag}
             </span>
           </div>

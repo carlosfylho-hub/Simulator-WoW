@@ -1,0 +1,136 @@
+import React, { useEffect, useRef, useState } from 'react';
+
+interface Props {
+    ativo: boolean;
+    /** ISO timestamp de início (job.started_at). */
+    startedAt?: string | null;
+    /** Orçamento previsto, em segundos; base da previsão. */
+    orcamentoSegundos?: number;
+    /** Rodada atual (Top Gear) — apenas informativo. */
+    rodada?: number;
+    maxRodadas?: number;
+    label?: string;
+}
+
+function formatarDuracao(segundos: number): string {
+    const s = Math.max(0, Math.round(segundos));
+    if (s >= 3600) {
+        const h = Math.floor(s / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        return `${h}h ${m.toString().padStart(2, '0')}m`;
+    }
+    if (s >= 60) {
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return `${m}m ${r.toString().padStart(2, '0')}s`;
+    }
+    return `${s}s`;
+}
+
+/**
+ * Barra de progresso em tempo real.
+ * - Enquanto está dentro do orçamento: preenche conforme o tempo decorrido e
+ *   mostra previsão de término.
+ * - Se estoura o orçamento (ou não há previsão): vira "indeterminada", com uma
+ *   faixa animada, para deixar claro que o SimC ainda está trabalhando — em vez
+ *   de travar em 98% com "faltam 0s".
+ */
+export const SimulationProgressBar: React.FC<Props> = ({
+    ativo,
+    startedAt,
+    orcamentoSegundos,
+    rodada,
+    maxRodadas,
+    label,
+}) => {
+    const [agora, setAgora] = useState<number>(() => Date.now());
+    const inicioRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        inicioRef.current = startedAt ? new Date(startedAt).getTime() : null;
+        setAgora(Date.now());
+    }, [startedAt]);
+
+    useEffect(() => {
+        if (!ativo) return;
+        const id = window.setInterval(() => setAgora(Date.now()), 500);
+        return () => window.clearInterval(id);
+    }, [ativo]);
+
+    const inicio = inicioRef.current;
+    const decorrido = ativo && inicio ? Math.max(0, (agora - inicio) / 1000) : 0;
+    const temOrcamento = !!orcamentoSegundos && orcamentoSegundos > 0;
+    const estourou = ativo && temOrcamento && decorrido > (orcamentoSegundos as number);
+    const indeterminado = ativo && (!temOrcamento || estourou);
+
+    let pct = 100;
+    if (ativo && !indeterminado) {
+        pct = Math.min(99, (decorrido / (orcamentoSegundos as number)) * 100);
+    }
+    pct = Math.max(0, Math.min(100, pct));
+
+    let restante: number | null = null;
+    if (ativo && !indeterminado && temOrcamento) {
+        restante = Math.max(0, (orcamentoSegundos as number) - decorrido);
+    }
+
+    const horaFim =
+        restante != null
+            ? new Date(Date.now() + restante * 1000).toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+            })
+            : null;
+
+    return (
+        <div className="mt-2">
+            <div className="mb-1 flex items-center justify-between text-[11px]">
+                <span className="font-medium text-zinc-300">
+                    {label || (ativo ? 'Executando…' : 'Concluído')}
+                    {ativo && rodada != null ? (
+                        <span className="ml-2 text-zinc-500">
+                            rodada {rodada}
+                            {maxRodadas ? `/${maxRodadas}` : ''}
+                        </span>
+                    ) : null}
+                </span>
+                <span className="font-bold text-zinc-100">
+                    {ativo ? (indeterminado ? '…' : `${pct.toFixed(0)}%`) : '100%'}
+                </span>
+            </div>
+
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-700">
+                {indeterminado ? (
+                    <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-sky-400 via-cyan-400 to-purple-500 animate-wowsim-indeterminate" />
+                ) : (
+                    <div
+                        className={`h-full rounded-full bg-gradient-to-r from-sky-400 via-cyan-400 to-purple-500 transition-all duration-500 ${ativo ? 'animate-pulse' : ''
+                            }`}
+                        style={{ width: `${pct}%` }}
+                    />
+                )}
+            </div>
+
+            {ativo && (
+                <div className="mt-1 flex items-center justify-between text-[10px] text-zinc-400">
+                    {estourou ? (
+                        <>
+                            <span className="text-amber-300/90">Mais que o previsto</span>
+                            <span>decorrido {formatarDuracao(decorrido)}</span>
+                        </>
+                    ) : restante != null ? (
+                        <>
+                            <span>Faltam ~{formatarDuracao(restante)}</span>
+                            <span>{horaFim ? `termina às ${horaFim}` : ''}</span>
+                        </>
+                    ) : (
+                        <>
+                            <span>Aguardando o SimC concluir a rodada…</span>
+                            <span>decorrido {formatarDuracao(decorrido)}</span>
+                        </>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};

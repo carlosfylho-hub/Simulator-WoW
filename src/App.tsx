@@ -7,10 +7,13 @@ import { NoRaidRoadmapTab } from './components/NoRaidRoadmapTab';
 import { DatabaseExplorerTab } from './components/DatabaseExplorerTab';
 import { AiConsultantDrawer } from './components/AiConsultantDrawer';
 import { BuildsSimulatorTab } from './components/BuildsSimulatorTab';
+import { TopGearPanel } from './components/TopGearPanel';
+import { DroptimizerPanel } from './components/DroptimizerPanel';
 import { WowItem, ActiveSpec, CombatScenario } from './types/wow';
 import { TooltipProvider } from './context/TooltipContext';
-import { fetchCatalogItems } from './services/catalogService';
-import { aplicarCatalogo } from './data/items';
+import { usePersistedState } from './services/persistedState';
+import { fetchCatalogItems, fetchIconMap } from './services/catalogService';
+import { aplicarCatalogo, aplicarIcones } from './data/items';
 
 type SubTab = { id: string; label: string };
 
@@ -18,6 +21,8 @@ const SUBTABS: Record<Area, SubTab[]> = {
   simular: [
     { id: 'inspecionar', label: 'Inspecionar' },
     { id: 'builds', label: 'Builds' },
+    { id: 'topgear', label: 'Top Gear' },
+    { id: 'droptimizer', label: 'Droptimizer' },
   ],
   explorar: [
     { id: 'itens', label: 'Itens' },
@@ -32,7 +37,7 @@ const SUBTABS: Record<Area, SubTab[]> = {
 export default function App() {
   const [area, setAreaState] = useState<Area>('simular');
   const [sub, setSub] = useState<string>(SUBTABS.simular[0].id);
-  const [scenario, setScenario] = useState<CombatScenario>('patchwerk');
+  const [scenario, setScenario] = usePersistedState<CombatScenario>('wowsim.cenario', 'patchwerk');
   const [currentSpec, setCurrentSpec] = useState<ActiveSpec>('demonology');
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState<boolean>(false);
 
@@ -46,12 +51,17 @@ export default function App() {
     setSub('inspecionar');
   };
 
-  // Reconcile item names with the authoritative Python catalog (best effort).
+  // Reconcile item names and icons with the authoritative Python catalog.
   useEffect(() => {
     fetchCatalogItems()
       .then((itens) => aplicarCatalogo(itens))
       .catch(() => {
         /* backend offline: keep the bundled names */
+      });
+    fetchIconMap()
+      .then((icones) => aplicarIcones(icones))
+      .catch(() => {
+        /* backend offline: keep the bundled icons */
       });
   }, []);
 
@@ -85,8 +95,8 @@ export default function App() {
                     key={tab.id}
                     onClick={() => setSub(tab.id)}
                     className={`px-3 py-1.5 text-sm rounded-md transition-colors ${ativo
-                        ? 'text-white bg-zinc-800/80'
-                        : 'text-zinc-500 hover:text-zinc-200'
+                      ? 'text-white bg-zinc-800/80'
+                      : 'text-zinc-500 hover:text-zinc-200'
                       }`}
                   >
                     {tab.label}
@@ -101,6 +111,12 @@ export default function App() {
           )}
           {area === 'simular' && sub === 'builds' && (
             <BuildsSimulatorTab externalSpecId={currentSpec} onSpecChange={setCurrentSpec} />
+          )}
+          {area === 'simular' && sub === 'topgear' && (
+            <TopGearPanel scenario={scenario} setScenario={setScenario as (c: string) => void} />
+          )}
+          {area === 'simular' && sub === 'droptimizer' && (
+            <DroptimizerPanel scenario={scenario} setScenario={setScenario as (c: string) => void} />
           )}
 
           {area === 'explorar' && sub === 'itens' && (

@@ -1,4 +1,5 @@
 import { WOW_ITEMS, getItemById } from '../data/items';
+import { getEmbellishmentDescription } from '../data/embellishments';
 
 export interface FullItemTooltip {
   id: number;
@@ -17,6 +18,9 @@ export interface FullItemTooltip {
   effect?: string;
   embellished?: boolean;
   embellishmentName?: string;
+  embellishmentDescription?: string;
+  embellishmentRecommendation?: string;
+  acceptsEmbellishment?: boolean;
   isTier?: boolean;
   tierPiece?: string;
   isCrafted?: boolean;
@@ -715,11 +719,12 @@ const OFFICIAL_1215_DATABASE: Record<number, Partial<FullItemTooltip>> = {
       { name: 'Maestria', value: 33, key: 'mastery' }
     ],
     embellished: true,
-    embellishmentName: 'Signo de Negraluna: Sangue [240170]',
-    effect: 'Embelezamento: Seus feitiços drenam a vitalidade do alvo, causando dano contínuo e convertendo 15% do dano em autocura para você.',
+    embellishmentName: 'Pedra Ritual do Caçador [273060]',
+    embellishmentRecommendation: 'Pedra Ritual do Caçador',
+    effect: 'Embelezamento: concede 101 de um atributo secundário aleatório por 15 s; +50% durante Caça às Presas (ambiente externo).',
     sourceLocation: 'Ordem de Criação: Escrivania (Centelha de Marés + 80 Cristas Míticas)',
     roleTag: 'Embelezamento Artesanal',
-    notes: 'Teto 331. Embelezamento defensivo vital para Delves Tier 11 e kiting.'
+    notes: 'Murlok S2: 36/50 usam Pedra Ritual do Caçador na Lanterna. Signo de Negraluna: Sangue aparece como alternativa.'
   },
   244576: {
     id: 244576,
@@ -966,9 +971,12 @@ const OFFICIAL_1215_DATABASE: Record<number, Partial<FullItemTooltip>> = {
       { name: 'Maestria', value: 155, key: 'mastery' }
     ],
     isCrafted: true,
+    embellished: true,
+    embellishmentName: 'Amolita Polida',
+    embellishmentRecommendation: 'Amolita Polida',
     sourceLocation: 'Profissão: Joalheria (Centelha da Criação)',
     roleTag: 'Acessório BiS',
-    notes: 'Engaste prismático garantido e atributos configuráveis por missiva.'
+    notes: 'Engaste prismático garantido e atributos configuráveis por missiva. Recebe o embelezamento de acessório (Amolita Polida).'
   },
   273060: {
     id: 273060,
@@ -1018,6 +1026,9 @@ export function getItemTooltipSync(
     effect?: string;
     embellished?: boolean;
     embellishmentName?: string;
+    embellishmentDescription?: string;
+    embellishmentRecommendation?: string;
+    acceptsEmbellishment?: boolean;
   }
 ): FullItemTooltip {
   const track = fallbackOptions?.track ?? 'myth';
@@ -1082,6 +1093,28 @@ export function getItemTooltipSync(
     stamina = ilvl >= 334 ? 3910 : 2932;
   }
 
+  const embellished =
+    official?.embellished ?? fallbackOptions?.embellished ?? catalogItem?.embellished;
+  const embellishmentName =
+    official?.embellishmentName ??
+    fallbackOptions?.embellishmentName ??
+    catalogItem?.embellishmentName;
+  const isCrafted = official?.isCrafted ?? catalogItem?.isCrafted;
+  const acceptsEmbellishment =
+    official?.acceptsEmbellishment ??
+    fallbackOptions?.acceptsEmbellishment ??
+    catalogItem?.acceptsEmbellishment ??
+    (!embellished && isCrafted === true);
+  const embellishmentRecommendation =
+    official?.embellishmentRecommendation ??
+    fallbackOptions?.embellishmentName ??
+    catalogItem?.embellishmentRecommendation ??
+    embellishmentName;
+  const embellishmentDescription =
+    official?.embellishmentDescription ??
+    fallbackOptions?.embellishmentDescription ??
+    getEmbellishmentDescription(embellishmentName ?? embellishmentRecommendation);
+
   const tooltipData: FullItemTooltip = {
     id: itemId,
     namePt,
@@ -1097,8 +1130,12 @@ export function getItemTooltipSync(
     stamina,
     secondaryStats,
     effect: official?.effect ?? fallbackOptions?.effect ?? catalogItem?.effect,
-    embellished: official?.embellished ?? fallbackOptions?.embellished ?? catalogItem?.embellished,
-    embellishmentName: official?.embellishmentName ?? fallbackOptions?.embellishmentName,
+    embellished,
+    embellishmentName,
+    embellishmentDescription,
+    embellishmentRecommendation,
+    acceptsEmbellishment,
+    isCrafted,
     isTier: official?.isTier ?? catalogItem?.isTier,
     tierPiece: official?.tierPiece ?? catalogItem?.tierPiece,
     sourceLocation,

@@ -70,8 +70,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   key={item.id}
                   onClick={() => setArea(item.id)}
                   className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${ativo
-                      ? 'text-white bg-zinc-800'
-                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+                    ? 'text-white bg-zinc-800'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
                     }`}
                 >
                   {item.label}
