@@ -100,6 +100,17 @@ export interface CraftPeca {
     embutido: boolean;
     ilvl: number;
     icone?: string | null;
+    stats?: Record<string, number> | null;
+}
+
+/** Peça que estouraria o limite de 2 embelezamentos e por isso não foi medida. */
+export interface CraftBloqueado {
+    slot: string;
+    item_id: number;
+    nome_pt: string | null;
+    nome_en: string | null;
+    embutido: boolean;
+    motivo: string;
 }
 
 export interface CraftEmbelezamento {
@@ -116,6 +127,7 @@ export interface CraftEmbelezamento {
 export interface CraftResultado {
     pecas: CraftPeca[];
     embelezamentos: CraftEmbelezamento[];
+    bloqueados?: CraftBloqueado[];
     custo: { ilvl: number; nivel: string; brasoes: number; moeda: string; centelhas: number; nota: string };
     limite_embelezamentos: string;
     avisos: string[];

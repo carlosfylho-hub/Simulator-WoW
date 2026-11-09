@@ -61,6 +61,22 @@ export const ResultadoCraft: React.FC<{ craft: CraftResultado; selo?: string | n
                         ? `${servem.length} peça(s) superam o que você usa hoje. O ganho é da peça sozinha, sem embelezamento.`
                         : 'Nenhuma peça craftada supera o que você usa hoje (sem contar embelezamento).'}
                 </p>
+                {craft.bloqueados && craft.bloqueados.length > 0 && (
+                    <div className="mt-3 border-t border-borda pt-2">
+                        <p className="text-xs text-texto-3">
+                            Não medidas: estourariam o limite de 2 embelezamentos.
+                        </p>
+                        <ul className="mt-1 space-y-1">
+                            {craft.bloqueados.map((b) => (
+                                <li key={`${b.slot}-${b.item_id}`} className="text-xs leading-snug text-texto-3">
+                                    <span className="text-texto-2">{slotPt(b.slot)} · {b.nome_pt || b.nome_en || `#${b.item_id}`}</span>
+                                    {' — '}
+                                    {b.motivo}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </Cartao>
 
             <Cartao
