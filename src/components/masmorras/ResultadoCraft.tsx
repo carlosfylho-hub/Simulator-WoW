@@ -98,6 +98,15 @@ export const ResultadoCraft: React.FC<{ craft: CraftResultado; selo?: string | n
                             >
                                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                                     <span className="text-sm font-medium text-texto">
+                                        {e.tipo === 'troca' && e.troca_de ? (
+                                            <span className="mr-1 text-xs font-normal text-texto-3">
+                                                Trocar {e.troca_de} por
+                                            </span>
+                                        ) : e.tipo === 'peca' && e.troca_de ? (
+                                            <span className="mr-1 text-xs font-normal text-texto-3">
+                                                Trocar a peça embutida #{e.troca_de} por
+                                            </span>
+                                        ) : null}
                                         {e.nome_pt || e.nome_en}
                                         <span className="ml-2 text-xs font-normal text-texto-3">{e.nome_en}</span>
                                     </span>

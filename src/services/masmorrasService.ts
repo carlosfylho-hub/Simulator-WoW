@@ -119,6 +119,10 @@ export interface CraftEmbelezamento {
     descricao: string | null;
     reagente_id: number;
     slot_medido: string;
+    /** adicionar = peça nova + efeito; troca = reagente; peca = substitui embutida. */
+    tipo?: 'adicionar' | 'troca' | 'peca';
+    /** O que está sendo trocado (nome do embelezamento ou id da peça embutida). */
+    troca_de?: string | null;
     ganho_pct: number;
     ganho_total_pct: number;
     limiar_pct: number;
