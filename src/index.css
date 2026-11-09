@@ -1,5 +1,79 @@
 @import "tailwindcss";
 
+/*
+ * Tema "azul-noite" (docs/PLANO-REDESIGN-UI.md §4). Contraste medido contra
+ * --color-superficie: texto 14,7:1 · texto-2 7,2:1 · texto-3 5,1:1 ·
+ * borda-campo 3,2:1. Mudou um valor? Rode o script do §8 de novo.
+ */
+@theme {
+    --color-fundo: #0B1220;
+    --color-superficie: #121A2B;
+    --color-superficie-2: #18233A;
+    --color-borda: #22304A;
+    --color-borda-campo: #56698F;
+    --color-texto: #E6ECF7;
+    --color-texto-2: #9AA8C2;
+    --color-texto-3: #7D8BA6;
+    --color-destaque: #F5C451;
+    --color-destaque-hover: #FFD36B;
+    --color-sobre-destaque: #0B1220;
+    --color-ganho: #4ADE80;
+    --color-perda: #F87171;
+    --color-aviso: #FBBF24;
+    --color-info: #7DB4FF;
+
+    --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: "JetBrains Mono", "Cascadia Mono", Consolas, ui-monospace, monospace;
+
+    /* Telas legadas (menu Avançado) usam zinc-*: remapeadas para a paleta nova,
+       herdam o tema sem reescrita. Do 500 para cima passa de 4,5:1 na superfície. */
+    --color-zinc-950: #0B1220;
+    --color-zinc-900: #121A2B;
+    --color-zinc-800: #22304A;
+    --color-zinc-700: #56698F;
+    --color-zinc-600: #7D8BA6;
+    --color-zinc-500: #8E9BB5;
+    --color-zinc-400: #9AA8C2;
+    --color-zinc-300: #C4CEE0;
+    --color-zinc-200: #DCE3EF;
+    --color-zinc-100: #E6ECF7;
+    --color-zinc-50: #F3F6FB;
+}
+
+html,
+body {
+    background: var(--color-fundo);
+    color: var(--color-texto);
+}
+
+body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Números: monoespaçados e alinhados (tabelas de %, DPS). */
+.num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+    outline: 2px solid var(--color-destaque);
+    outline-offset: 2px;
+}
+
+select,
+input,
+textarea {
+    color-scheme: dark;
+}
+
+::selection {
+    background: rgb(245 196 81 / 0.35);
+}
+
 @keyframes wowsim-indeterminate {
     0% {
         transform: translateX(-100%);
