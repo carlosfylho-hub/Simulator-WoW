@@ -110,6 +110,25 @@ export interface CraftPeca {
     stats?: Record<string, number> | null;
 }
 
+export interface DuplaCraft {
+    slots: string[];
+    pecas: { slot: string; item_id: number; nome_pt: string | null; nome_en: string | null; missiva: string; embutido: boolean; ilvl: number; centelhas: number; icone?: string | null }[];
+    dps: number;
+    ganho_pct: number;
+    limiar_pct: number;
+    diferenca_pct: number;
+}
+
+/** Plano de 2 peças craftadas, medidas juntas (o resto = o que você usa hoje). */
+export interface PlanoCraft {
+    melhor: DuplaCraft | null;
+    alternativas: DuplaCraft[];
+    base_dps?: number;
+    iteracoes?: number;
+    nota?: string;
+    motivo?: string;
+}
+
 /** Peça que estouraria o limite de 2 embelezamentos e por isso não foi medida. */
 export interface CraftBloqueado {
     slot: string;
@@ -144,6 +163,7 @@ export interface CraftResultado {
     pecas: CraftPeca[];
     embelezamentos: CraftEmbelezamento[];
     bloqueados?: CraftBloqueado[];
+    plano?: PlanoCraft | null;
     custo: { ilvl: number; nivel: string; brasoes: number; moeda: string; centelhas: number; nota: string };
     limite_embelezamentos: string;
     avisos: string[];

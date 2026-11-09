@@ -13,6 +13,8 @@ interface Props {
     fonte?: string | null;
     /** Selo curto da fonte (ex.: "Craftado"). */
     roleTag?: string | null;
+    /** Degrau/nível já conhecido para a tooltip (ex.: "Herói qualidade 5"). */
+    degrau?: string | null;
     tamanho?: number;
 }
 
@@ -26,6 +28,7 @@ export const ItemIcone: React.FC<Props> = ({
     stats,
     fonte,
     roleTag,
+    degrau,
     tamanho = 24,
 }) => {
     const { showTooltip, hideTooltip } = useItemTooltip();
@@ -45,6 +48,7 @@ export const ItemIcone: React.FC<Props> = ({
                     stats: stats ?? undefined,
                     sourceLocation: fonte ?? undefined,
                     roleTag: roleTag ?? undefined,
+                    trackLabel: degrau ?? undefined,
                 })
             }
             onMouseLeave={hideTooltip}

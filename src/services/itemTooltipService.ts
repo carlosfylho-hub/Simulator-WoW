@@ -1027,6 +1027,8 @@ export function getItemTooltipSync(
     embellished?: boolean;
     embellishmentName?: string;
     embellishmentDescription?: string;
+    /** Rótulo do degrau já conhecido (ex.: "Herói qualidade 5", "Mito 2/6"). Prevalece. */
+    trackLabel?: string;
     embellishmentRecommendation?: string;
     acceptsEmbellishment?: boolean;
   }
@@ -1046,7 +1048,8 @@ export function getItemTooltipSync(
   const nameEn = official?.nameEn ?? catalogItem?.nameEn ?? fallbackOptions?.itemEn ?? 'Unknown Item';
   const icon = official?.icon ?? catalogItem?.icon ?? fallbackOptions?.icon ?? 'inv_misc_questionmark';
   const quality = (official?.quality ?? catalogItem?.quality ?? 'epic') as 'epic' | 'rare' | 'uncommon' | 'artifact';
-  const slot = official?.slot ?? catalogItem?.slot ?? fallbackOptions?.slot ?? 'Equipamento';
+  // Quem chama sabe o slot exato (ex.: "Anel 2"); o catálogo só tem o genérico ("finger").
+  const slot = fallbackOptions?.slot ?? official?.slot ?? catalogItem?.slot ?? 'Equipamento';
 
   // Determine ilvl based on track or explicit options
   let ilvl = fallbackOptions?.ilvl ?? 334;
@@ -1059,15 +1062,17 @@ export function getItemTooltipSync(
     if (ilvl === 344) trackLabel = 'Mítico Mítico (Raide)';
     else if (ilvl === 341) trackLabel = 'Mítico Forjado com Peçonha (+7)';
     else if (ilvl === 331) trackLabel = 'Artesanato Mítico (Teto 331)';
-    else trackLabel = 'Mito 6/6 (334)';
+    else if (ilvl === 334) trackLabel = 'Mito 6/6 (334)';
+    else trackLabel = `Nível ${ilvl}`; // sem palpite de trilha (P1)
   }
+  if (fallbackOptions?.trackLabel) trackLabel = fallbackOptions.trackLabel;
 
   // Quality color mapping
   const qualityColor = quality === 'epic' ? '#a335ee' : quality === 'rare' ? '#0070dd' : quality === 'artifact' ? '#e6cc80' : '#1eff00';
   const qualityBorder = quality === 'epic' ? 'border-[#a335ee] shadow-[0_0_10px_rgba(163,53,238,0.4)]' : 'border-[#0070dd] shadow-[0_0_8px_rgba(0,112,221,0.3)]';
 
   // Sem fonte conhecida, dizemos a verdade (P1): nunca "Masmorra M+" por palpite.
-  const sourceLocation = official?.sourceLocation ?? catalogItem?.sourceDetail ?? fallbackOptions?.sourceLocation ?? 'Fonte não informada';
+  const sourceLocation = fallbackOptions?.sourceLocation ?? official?.sourceLocation ?? catalogItem?.sourceDetail ?? 'Fonte não informada';
   const roleTag =
     official?.roleTag ??
     fallbackOptions?.roleTag ??

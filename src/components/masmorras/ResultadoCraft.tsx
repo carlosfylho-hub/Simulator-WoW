@@ -1,19 +1,88 @@
 import React from 'react';
 import { Gem, Hammer } from 'lucide-react';
-import { CraftResultado } from '../../services/masmorrasService';
+import { CraftResultado, DuplaCraft } from '../../services/masmorrasService';
 import { Aviso, Cartao, Delta, ItemIcone } from '../../ui';
 import { slotPt } from './rotulos';
+
+const Dupla: React.FC<{ d: DuplaCraft; nivel: string; destaque?: boolean }> = ({ d, nivel, destaque }) => (
+    <div className={`rounded-lg border px-3 py-2 ${destaque ? 'border-destaque/50' : 'border-borda'}`}>
+        <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+            <span className="text-texto-2">{d.slots.map(slotPt).join(' + ')}</span>
+            <span className="flex items-baseline gap-2">
+                <Delta valor={d.ganho_pct} limiar={d.limiar_pct} />
+                {!destaque && (
+                    <span className="text-xs text-texto-3" title="Diferença para o melhor plano, em % do seu DPS">
+                        ({d.diferenca_pct.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}% vs melhor)
+                    </span>
+                )}
+            </span>
+        </div>
+        {d.pecas.map((p) => (
+            <div key={p.slot} className="grid grid-cols-[6rem_minmax(0,1fr)_minmax(0,11rem)] items-center gap-3 py-0.5 text-sm">
+                <span className="text-xs text-texto-3">{slotPt(p.slot)}</span>
+                <span className="flex min-w-0 items-center gap-1.5">
+                    <ItemIcone
+                        itemId={p.item_id}
+                        icone={p.icone}
+                        nome={p.nome_pt || p.nome_en || `#${p.item_id}`}
+                        slot={slotPt(p.slot)}
+                        ilvl={p.ilvl}
+                        fonte={`Craft (${nivel})`}
+                        roleTag="Craftado"
+                        degrau={nivel}
+                        tamanho={20}
+                    />
+                    {p.embutido && <span className="shrink-0 text-xs text-aviso">embelezado</span>}
+                </span>
+                <span className="truncate text-xs text-texto-2">{p.missiva}{p.centelhas > 2 ? ` · ${p.centelhas} Centelhas` : ''}</span>
+            </div>
+        ))}
+    </div>
+);
 
 /** Modo Craft: peça + missiva por slot e embelezamentos, todos medidos pelo simc. */
 export const ResultadoCraft: React.FC<{ craft: CraftResultado; selo?: string | null }> = ({ craft, selo }) => {
     const servem = craft.pecas.filter((p) => p.serve);
     const melhoresEmb = craft.embelezamentos.slice(0, 2);
+    const plano = craft.plano;
     return (
         <div className="space-y-5">
+            {plano && (
+                <Cartao
+                    titulo={
+                        <span className="flex items-center gap-2">
+                            <Hammer className="w-4 h-4 text-destaque" /> Plano: craftar 2 peças
+                        </span>
+                    }
+                >
+                    <p className="-mt-1 mb-3 text-xs text-texto-3">
+                        As duas peças foram medidas juntas no simc
+                        {plano.iteracoes ? ` (${plano.iteracoes.toLocaleString('pt-BR')} iterações)` : ''}.{' '}
+                        {plano.nota}
+                    </p>
+                    {plano.melhor ? (
+                        <div className="space-y-2">
+                            <Dupla d={plano.melhor} nivel={craft.custo.nivel} destaque />
+                            {plano.alternativas.length > 0 && (
+                                <>
+                                    <p className="pt-1 text-xs text-texto-3">
+                                        Alternativas (você decide): o número entre parênteses é quanto de DPS a menos que o melhor plano.
+                                    </p>
+                                    {plano.alternativas.map((d) => (
+                                        <Dupla key={d.slots.join('-')} d={d} nivel={craft.custo.nivel} />
+                                    ))}
+                                </>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-texto-2">{plano.motivo}</p>
+                    )}
+                </Cartao>
+            )}
             <Cartao
                 titulo={
                     <span className="flex items-center gap-2">
-                        <Hammer className="w-4 h-4 text-destaque" /> Peças para craftar
+                        <Hammer className="w-4 h-4 text-destaque" /> {plano ? 'Cada peça sozinha' : 'Peças para craftar'}
                     </span>
                 }
             >
@@ -45,6 +114,7 @@ export const ResultadoCraft: React.FC<{ craft: CraftResultado; selo?: string | n
                                         stats={p.stats}
                                         fonte={craft.custo.nivel ? `Craft (${craft.custo.nivel})` : 'Craft'}
                                         roleTag="Craftado"
+                                        degrau={craft.custo.nivel}
                                         tamanho={20}
                                     />
                                     {p.embutido && <span className="shrink-0 text-xs text-aviso">embelezado</span>}
