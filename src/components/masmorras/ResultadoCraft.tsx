@@ -198,10 +198,14 @@ export const ResultadoCraft: React.FC<{ craft: CraftResultado; selo?: string | n
                                         <span className="ml-2 text-xs text-texto-3">em {slotPt(e.slot_medido)}</span>
                                     </span>
                                 </div>
-                                {(e.texto_completo || e.descricao) && (
-                                    <p className="mt-1 text-xs leading-snug text-texto-2">
-                                        {e.texto_completo || e.descricao}
-                                    </p>
+                                {e.descricao && (
+                                    <p className="mt-1 text-xs leading-snug text-texto-2">{e.descricao}</p>
+                                )}
+                                {e.texto_completo && (
+                                    <details className="mt-1 text-xs text-texto-3">
+                                        <summary className="cursor-pointer text-texto-2">Tooltip completo do jogo</summary>
+                                        <p className="mt-1 whitespace-pre-line leading-snug">{e.texto_completo}</p>
+                                    </details>
                                 )}
                                 {e.materiais && e.materiais.length > 0 && (
                                     <details className="mt-1 text-xs text-texto-3">
