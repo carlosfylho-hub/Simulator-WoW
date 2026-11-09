@@ -3,7 +3,7 @@ import { AlertTriangle } from 'lucide-react';
 import { BuildResultado, RankingResult } from '../../services/masmorrasService';
 import { CENARIOS_DROPDOWN } from '../../data/scenarios';
 import { Cartao, Delta, ItemIcone, formatarDps } from '../../ui';
-import { nomeItem, slotPt } from './rotulos';
+import { nomeItem, slotPt, textoUpgrade } from './rotulos';
 
 const rotuloCenario = (v: string) => CENARIOS_DROPDOWN.find((c) => c.valor === v)?.rotulo ?? v;
 
@@ -39,10 +39,25 @@ const CartaoBuild: React.FC<{ build: BuildResultado }> = ({ build }) => {
                                     <ItemIcone itemId={t.item_id} icone={t.icone} nome={nomeItem(t)} slot={t.slot} ilvl={t.ilvl} stats={t.stats} tamanho={20} />
                                     {t.catalisado && <span className="shrink-0 text-xs text-aviso">catalisar</span>}
                                 </span>
-                                <Delta valor={t.ganho_pct} />
+                                <span className="flex items-center gap-2">
+                                    {t.upgrade?.brasoes ? (
+                                        <span className="text-xs text-texto-3" title={`Até ${t.upgrade.ate}`}>
+                                            {textoUpgrade(t.upgrade)}
+                                        </span>
+                                    ) : null}
+                                    <Delta valor={t.ganho_pct} />
+                                </span>
                             </li>
                         ))}
                     </ul>
+                    {build.brasoes && Object.keys(build.brasoes).length > 0 && (
+                        <p className="mt-2 text-xs text-texto-2" title="Custo cheio para levar todas as trocas ao 6/6; o desconto de slot do jogo pode reduzir">
+                            Para upar tudo ao 6/6:{' '}
+                            {Object.entries(build.brasoes)
+                                .map(([moeda, n]) => `${n} ${moeda.includes('Mítico') ? 'Brasões Míticos' : 'Brasões de Herói'}`)
+                                .join(' + ')}
+                        </p>
+                    )}
                 </>
             )}
             {build.avisos.length > 0 && (

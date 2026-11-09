@@ -14,6 +14,16 @@ export interface ItemRanking {
     icone: string | null;
     stats: Record<string, number> | null;
     aviso: string | null;
+    degrau?: string | null;
+    upgrade?: Upgrade | null;
+}
+
+/** Brasões para levar o item ao 6/6 da trilha (custo cheio, sem desconto de slot). */
+export interface Upgrade {
+    moeda: string;
+    brasoes: number;
+    etapas: number;
+    ate: string;
 }
 
 export interface MasmorraRanking {
@@ -38,6 +48,8 @@ export interface TrocaBuild {
     ganho_pct: number;
     icone: string | null;
     stats?: Record<string, number> | null;
+    degrau?: string | null;
+    upgrade?: Upgrade | null;
 }
 
 export interface BuildResultado {
@@ -51,6 +63,7 @@ export interface BuildResultado {
     avisos: string[];
     pawn: string | null;
     pawn_pesos: Record<string, number> | null;
+    brasoes?: Record<string, number>;
 }
 
 export interface LinhaMatriz {
@@ -77,6 +90,7 @@ export interface RankingResult {
     base_dps: number;
     cenario: string;
     ilvl: number;
+    nivel?: string | null;
     iteracoes: number;
     ordem_padrao: 'quantidade';
     masmorras: MasmorraRanking[];
@@ -115,6 +129,9 @@ export interface RankingRequest {
     scenario?: string;
     modo?: 'masmorras' | 'cofre';
     ilvl?: number;
+    trilha?: 'heroi' | 'mito';
+    rank?: number;
+    forja?: boolean;
     iteracoes_triagem?: number;
     iteracoes_refino?: number;
     orcamento_segundos?: number;
@@ -152,6 +169,9 @@ export async function estimativaRanking(params: {
     medir_pesos?: boolean;
     scenario?: string;
     cenarios?: string[];
+    trilha?: 'heroi' | 'mito';
+    rank?: number;
+    forja?: boolean;
 }): Promise<RankingEstimativa> {
     const query = new URLSearchParams({
         addon: params.addon,
@@ -164,6 +184,11 @@ export async function estimativaRanking(params: {
     });
     if (params.amr) query.set('amr', params.amr);
     if (params.scenario) query.set('scenario', params.scenario);
+    if (params.trilha) {
+        query.set('trilha', params.trilha);
+        query.set('rank', String(params.rank ?? 6));
+        query.set('forja', String(Boolean(params.forja)));
+    }
     if (params.cenarios?.length) query.set('cenarios', params.cenarios.join(','));
     const resposta = await fetch(`/api/masmorras/estimativa?${query.toString()}`);
     if (!resposta.ok) throw await erro(resposta);
@@ -221,6 +246,16 @@ export async function gerarStringAmr(pedido: {
     if (!resposta.ok) throw await erro(resposta);
     return resposta.json();
 }
+
+/** Escada de níveis (bonus_ilvl.json / Raidbots; Method.gg). Forja só no 6/6. */
+export const ESCADA: Record<'heroi' | 'mito', number[]> = {
+    heroi: [305, 308, 311, 315, 318, 321],
+    mito: [318, 321, 324, 328, 331, 334],
+};
+export const ILVL_FORJA: Record<'heroi' | 'mito', number> = { heroi: 328, mito: 341 };
+
+export const ilvlDoNivel = (trilha: 'heroi' | 'mito', rank: number, forja: boolean) =>
+    forja && rank === 6 ? ILVL_FORJA[trilha] : ESCADA[trilha][rank - 1];
 
 export const ROTULO_ETIQUETA: Record<Etiqueta, string> = {
     direto: 'upgrade direto',

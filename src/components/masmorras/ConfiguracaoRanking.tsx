@@ -1,12 +1,15 @@
 import React from 'react';
 import { Play, XCircle } from 'lucide-react';
-import { BuildDisponivel, RankingEstimativa } from '../../services/masmorrasService';
+import { BuildDisponivel, ESCADA, ILVL_FORJA, RankingEstimativa } from '../../services/masmorrasService';
 import { CENARIOS_DROPDOWN, DESCRICAO_CENARIO } from '../../data/scenarios';
-import { Botao, Campo, Cartao, Numero, Recolhivel, Selecao } from '../../ui';
+import { Botao, Campo, Cartao, Numero, Recolhivel, Segmentado, Selecao } from '../../ui';
 
 export interface Config {
     modo: 'masmorras' | 'cofre';
-    ilvl: number;
+    ilvl: number;            // atalho antigo; o pedido usa trilha + rank + forja
+    trilha: 'heroi' | 'mito';
+    rank: number;
+    forja: boolean;
     scenario: string;
     itTriagem: number;
     itRefino: number;
@@ -52,18 +55,51 @@ export const ConfiguracaoRanking: React.FC<Props> = ({
 
     return (
         <Cartao>
-            <div className="grid gap-4 sm:grid-cols-3">
-                {config.modo === 'masmorras' && (
-                    <Campo rotulo="Nível do item" dica="Nível com que o item cai na chave que você vai fazer.">
-                        <Selecao value={config.ilvl} onChange={(e) => mudar({ ilvl: Number(e.target.value) })}>
-                            {[321, 328, 334, 341].map((n) => (
-                                <option key={n} value={n}>
-                                    {n}
+            {config.modo === 'masmorras' && (
+                <div className="mb-4 flex flex-wrap items-end gap-4">
+                    <Campo rotulo="Trilha" dica="Trilha de upgrade em que o item vai chegar (bônus roll da chave).">
+                        <Segmentado<'heroi' | 'mito'>
+                            rotuloAria="Trilha"
+                            opcoes={[
+                                { valor: 'heroi', rotulo: 'Herói' },
+                                { valor: 'mito', rotulo: 'Mítico' },
+                            ]}
+                            valor={config.trilha}
+                            onChange={(trilha) => mudar({ trilha })}
+                        />
+                    </Campo>
+                    <Campo rotulo="Rank">
+                        <Selecao
+                            value={config.rank}
+                            onChange={(e) => {
+                                const rank = Number(e.target.value);
+                                mudar({ rank, forja: rank === 6 ? config.forja : false });
+                            }}
+                        >
+                            {ESCADA[config.trilha].map((ilvl, i) => (
+                                <option key={i} value={i + 1}>
+                                    {i + 1}/6 · {ilvl}
                                 </option>
                             ))}
                         </Selecao>
                     </Campo>
-                )}
+                    <label
+                        className={`flex h-9 items-center gap-2 text-sm ${config.rank === 6 ? 'text-texto' : 'text-texto-3'}`}
+                        title={config.rank === 6 ? '' : 'A Forja do Veneno só existe no 6/6'}
+                    >
+                        <input
+                            type="checkbox"
+                            disabled={config.rank !== 6}
+                            checked={config.forja && config.rank === 6}
+                            onChange={(e) => mudar({ forja: e.target.checked })}
+                            className="h-4 w-4 accent-destaque"
+                        />
+                        Forja do Veneno
+                        <span className="num text-texto-3">({ILVL_FORJA[config.trilha]})</span>
+                    </label>
+                </div>
+            )}
+            <div className="grid gap-4 sm:grid-cols-3">
                 <Campo
                     rotulo="Cenário"
                     dica={

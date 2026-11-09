@@ -34,6 +34,9 @@ const terminado = (status: string) => ['done', 'error', 'cancelled'].includes(st
 const PADRAO: Omit<Config, 'scenario'> = {
     modo: 'masmorras',
     ilvl: 341,
+    trilha: 'mito',
+    rank: 6,
+    forja: true,
     itTriagem: 300,
     itRefino: 3000,
     orcamento: 900,
@@ -100,6 +103,9 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
             estimativaRanking({
                 addon: temSimc ? perfil.addon : perfil.amr,
                 ilvl: config.ilvl,
+                trilha: config.trilha,
+                rank: config.rank,
+                forja: config.forja && config.rank === 6,
                 iteracoes_triagem: config.itTriagem,
                 iteracoes_refino: config.itRefino,
                 modo: config.modo,
@@ -114,7 +120,7 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
         }, 800);
         return () => window.clearTimeout(t);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [podeRodar, perfil.addon, perfil.amr, config.modo, config.ilvl, config.itTriagem, config.itRefino, config.scenario, cenariosDasBuilds.join(','), config.medirPesos]);
+    }, [podeRodar, perfil.addon, perfil.amr, config.modo, config.trilha, config.rank, config.forja, config.itTriagem, config.itRefino, config.scenario, cenariosDasBuilds.join(','), config.medirPesos]);
 
     // Polling do job em andamento.
     useEffect(() => {
@@ -192,6 +198,9 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
                 modo: config.modo,
                 scenario: config.scenario,
                 ilvl: config.ilvl,
+                trilha: config.trilha,
+                rank: config.rank,
+                forja: config.forja && config.rank === 6,
                 iteracoes_triagem: config.itTriagem,
                 iteracoes_refino: config.itRefino,
                 orcamento_segundos: config.orcamento,

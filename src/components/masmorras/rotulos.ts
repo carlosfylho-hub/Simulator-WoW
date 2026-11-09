@@ -9,5 +9,12 @@ export const SLOT_PT: Record<string, string> = {
 
 export const slotPt = (slot: string) => SLOT_PT[slot] ?? slot;
 
+/** "80 Míticos" / "40 de Herói" — vazio quando já está no 6/6. */
+export const textoUpgrade = (u?: { moeda: string; brasoes: number } | null): string => {
+    if (!u || !u.brasoes) return '';
+    const curta = u.moeda.includes('Mítico') ? 'Míticos' : 'de Herói';
+    return `${u.brasoes} ${curta}`;
+};
+
 export const nomeItem = (i: { nome_pt?: string | null; nome_en?: string | null; item_id?: number | null }) =>
     i.nome_pt || i.nome_en || (i.item_id != null ? `#${i.item_id}` : '—');

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { MasmorraRanking, RankingResult } from '../../services/masmorrasService';
 import { Cartao, Delta, Etiqueta, ItemIcone, Segmentado, formatarDps } from '../../ui';
-import { nomeItem, slotPt } from './rotulos';
+import { nomeItem, slotPt, textoUpgrade } from './rotulos';
 
 const TOPO = 5;
 
@@ -11,7 +11,7 @@ const ItensDaMasmorra: React.FC<{ masmorra: MasmorraRanking }> = ({ masmorra }) 
         {masmorra.itens.map((item) => (
             <div
                 key={`${item.item_id}-${item.slot}`}
-                className="grid grid-cols-[minmax(0,1fr)_6rem_5.5rem_5.5rem_auto] items-center gap-3 rounded-lg px-2 py-1.5 text-sm hover:bg-superficie-2"
+                className="grid grid-cols-[minmax(0,1fr)_7.5rem_5.5rem_5.5rem_6.5rem_auto] items-center gap-3 rounded-lg px-2 py-1.5 text-sm hover:bg-superficie-2"
             >
                 <ItemIcone
                     itemId={item.item_id}
@@ -22,7 +22,7 @@ const ItensDaMasmorra: React.FC<{ masmorra: MasmorraRanking }> = ({ masmorra }) 
                     stats={item.stats}
                 />
                 <span className="text-xs text-texto-3">
-                    {slotPt(item.slot)} · <span className="num">{item.ilvl}</span>
+                    {slotPt(item.slot)} · {item.degrau ?? <span className="num">{item.ilvl}</span>}
                 </span>
                 <Delta valor={item.delta_cru_pct} limiar={item.limiar_pct} className="text-right" />
                 <span className="text-right text-xs text-texto-3" title="Ganho se catalisado para o tier">
@@ -33,6 +33,16 @@ const ItensDaMasmorra: React.FC<{ masmorra: MasmorraRanking }> = ({ masmorra }) 
                     ) : (
                         '—'
                     )}
+                </span>
+                <span
+                    className="text-right text-xs text-texto-2"
+                    title={item.upgrade ? `Brasões para chegar a ${item.upgrade.ate} (custo cheio, sem desconto de slot)` : ''}
+                >
+                    {item.upgrade
+                        ? item.upgrade.brasoes
+                            ? <>→ 6/6: <span className="num text-texto">{textoUpgrade(item.upgrade)}</span></>
+                            : 'já no 6/6'
+                        : '—'}
                 </span>
                 <span className="justify-self-end">
                     <Etiqueta tipo={item.etiqueta} />
@@ -121,6 +131,7 @@ export const ResultadoRanking: React.FC<Props> = ({ resultado, modo, selo }) => 
             }
         >
             <p className="-mt-1 mb-3 text-xs text-texto-3">
+                {resultado.nivel ? `${resultado.nivel} (${resultado.ilvl}) · ` : ''}
                 {builds
                     ? `Média ponderada de ${builds} build(s)`
                     : `Base ${formatarDps(resultado.base_dps)} DPS`}
