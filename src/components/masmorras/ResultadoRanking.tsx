@@ -37,12 +37,14 @@ const ItensDaMasmorra: React.FC<{ masmorra: MasmorraRanking }> = ({ masmorra }) 
                 </span>
                 <span
                     className="text-right text-xs text-texto-2"
-                    title={item.upgrade ? `Brasões para chegar a ${item.upgrade.ate} (custo cheio, sem desconto de slot)` : ''}
+                    title={item.upgrade ? `Até ${item.upgrade.ate}. ${item.upgrade.nota ?? ''}` : ''}
                 >
                     {item.upgrade
-                        ? item.upgrade.brasoes
-                            ? <>→ 6/6: <span className="num text-texto">{textoUpgrade(item.upgrade)}</span></>
-                            : 'já no 6/6'
+                        ? item.upgrade.forja
+                            ? <>forjado · <span className="num">{item.upgrade.forja.quantidade}</span> Venomstones</>
+                            : item.upgrade.brasoes || item.upgrade.etapas_gratis
+                              ? <>→ 6/6: <span className="num text-texto">{textoUpgrade(item.upgrade)}</span></>
+                              : 'já no 6/6'
                         : '—'}
                 </span>
                 <span className="justify-self-end">
@@ -172,7 +174,9 @@ export const ResultadoRanking: React.FC<Props> = ({ resultado, modo, selo }) => 
                     </li>
                     <li>
                         <strong className="text-texto-2">→ 6/6</strong>: brasões que faltam para upar o item até o máximo da
-                        trilha (custo cheio, sem o desconto de slot do jogo).
+                        trilha. As etapas até o maior nível que você já teve naquele slot saem sem brasão ("grátis");
+                        passe o mouse para ver o detalhe. <strong className="text-texto-2">forjado</strong>: item com a
+                        Forja do Veneno (só arma, berloque e colar), que custa 10 Ascendant Venomstones.
                     </li>
                 </ul>
             </details>

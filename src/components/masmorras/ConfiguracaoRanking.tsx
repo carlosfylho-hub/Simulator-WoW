@@ -22,6 +22,9 @@ export interface Config {
     forcarTier: boolean;
     trilhaTier: 'heroi' | 'mito';
     rankTier: number;
+    /** V-4: cargas do Catalisador disponíveis; null = não limitar. */
+    cargasCatalisador: number | null;
+    trilhaCraft: 'heroi' | 'mito';
 }
 
 /** Limites aceitos pelo servidor (masmorras/modelos.py) e valores recomendados. */
@@ -242,6 +245,41 @@ export const ConfiguracaoRanking: React.FC<Props> = ({
                             ))}
                         </Selecao>
                         <Ajuda>Nível com que o tier é medido.</Ajuda>
+                    </Campo>
+                    <Campo
+                        rotulo="Cargas do Catalisador"
+                        dica="Quantas cargas do Catalisador você tem agora. Cada peça transformada em tier gasta uma. O plano de tier set e as builds não sugerem mais conversões do que isso. Deixe vazio para não limitar."
+                    >
+                        <Numero
+                            min={0}
+                            max={20}
+                            value={config.cargasCatalisador ?? ''}
+                            placeholder="sem limite"
+                            onChange={(e) =>
+                                mudar({ cargasCatalisador: e.target.value === '' ? null : Math.max(0, Math.min(20, Number(e.target.value))) })
+                            }
+                        />
+                        <Ajuda>Vazio = sem limite.</Ajuda>
+                    </Campo>
+                </div>
+            )}
+
+            {config.modo === 'craft' && (
+                <div className="mb-4 grid gap-4 sm:grid-cols-3">
+                    <Campo
+                        rotulo="Brasões do craft"
+                        dica="O craft usa 80 brasões como reagente opcional. Com Brasões de Herói a peça chega ao nível 318; com Brasões Míticos, a 331 (qualidade máxima). Escolha o que você tem para gastar."
+                    >
+                        <Segmentado<'heroi' | 'mito'>
+                            rotuloAria="Brasões do craft"
+                            opcoes={[
+                                { valor: 'heroi', rotulo: 'Herói (318)' },
+                                { valor: 'mito', rotulo: 'Mítico (331)' },
+                            ]}
+                            valor={config.trilhaCraft}
+                            onChange={(trilhaCraft) => mudar({ trilhaCraft })}
+                        />
+                        <Ajuda>80 brasões por peça, mais 2 Centelhas (4 em arma de 2 mãos).</Ajuda>
                     </Campo>
                 </div>
             )}

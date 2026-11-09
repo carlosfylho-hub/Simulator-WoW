@@ -48,6 +48,8 @@ const PADRAO: Omit<Config, 'scenario'> = {
     forcarTier: false,
     trilhaTier: 'mito',
     rankTier: 6,
+    cargasCatalisador: null,
+    trilhaCraft: 'mito',
 };
 
 /**
@@ -122,13 +124,15 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
                 medir_pesos: config.medirPesos,
                 scenario: config.scenario,
                 cenarios: cenariosDasBuilds,
+                forcar_tier: config.modo === 'masmorras' && buildsAtivas.length === 0 && config.forcarTier,
+                trilha_craft: config.trilhaCraft,
             })
                 .then(setEstimativa)
                 .catch(() => setEstimativa(null));
         }, 800);
         return () => window.clearTimeout(t);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [podeRodar, perfil.addon, perfil.amr, config.modo, config.trilha, config.rank, config.forja, config.itTriagem, config.itRefino, config.scenario, cenariosDasBuilds.join(','), config.medirPesos]);
+    }, [podeRodar, perfil.addon, perfil.amr, config.modo, config.trilha, config.rank, config.forja, config.itTriagem, config.itRefino, config.scenario, cenariosDasBuilds.join(','), config.medirPesos, config.forcarTier, config.trilhaCraft]);
 
     // Polling do job em andamento.
     useEffect(() => {
@@ -220,6 +224,8 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
                 forcar_tier: config.modo === 'masmorras' && buildsAtivas.length === 0 && config.forcarTier,
                 trilha_tier: config.trilhaTier,
                 rank_tier: config.rankTier,
+                max_catalisados: config.cargasCatalisador,
+                trilha_craft: config.trilhaCraft,
             });
             setModoResultado(config.modo);
             setJob(await consultarRanking(criado.id));

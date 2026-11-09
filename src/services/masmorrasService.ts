@@ -25,6 +25,11 @@ export interface Upgrade {
     brasoes: number;
     etapas: number;
     ate: string;
+    /** Etapas sem brasão pela marca de nível do slot (P-054). */
+    etapas_gratis?: number;
+    nota?: string;
+    /** Forjado: custo da Forja do Veneno (Ascendant Venomstones). */
+    forja?: { quantidade: number; moeda: string } | null;
 }
 
 export interface MasmorraRanking {
@@ -234,6 +239,8 @@ export interface RankingRequest {
     forcar_tier?: boolean;
     trilha_tier?: 'heroi' | 'mito';
     rank_tier?: number;
+    max_catalisados?: number | null;
+    trilha_craft?: 'heroi' | 'mito';
 }
 
 export interface RankingEstimativa {
@@ -261,6 +268,8 @@ export async function estimativaRanking(params: {
     trilha?: 'heroi' | 'mito';
     rank?: number;
     forja?: boolean;
+    forcar_tier?: boolean;
+    trilha_craft?: 'heroi' | 'mito';
 }): Promise<RankingEstimativa> {
     const query = new URLSearchParams({
         addon: params.addon,
@@ -279,6 +288,8 @@ export async function estimativaRanking(params: {
         query.set('forja', String(Boolean(params.forja)));
     }
     if (params.cenarios?.length) query.set('cenarios', params.cenarios.join(','));
+    if (params.forcar_tier) query.set('forcar_tier', 'true');
+    if (params.trilha_craft) query.set('trilha_craft', params.trilha_craft);
     const resposta = await fetch(`/api/masmorras/estimativa?${query.toString()}`);
     if (!resposta.ok) throw await erro(resposta);
     return resposta.json();

@@ -10,10 +10,13 @@ export const SLOT_PT: Record<string, string> = {
 export const slotPt = (slot: string) => SLOT_PT[slot] ?? slot;
 
 /** "80 Míticos" / "40 de Herói" — vazio quando já está no 6/6. */
-export const textoUpgrade = (u?: { moeda: string; brasoes: number } | null): string => {
-    if (!u || !u.brasoes) return '';
+export const textoUpgrade = (
+    u?: { moeda: string; brasoes: number; etapas_gratis?: number } | null,
+): string => {
+    if (!u) return '';
+    if (!u.brasoes) return u.etapas_gratis ? 'sem brasão (marca do slot)' : '';
     const curta = u.moeda.includes('Mítico') ? 'Míticos' : 'de Herói';
-    return `${u.brasoes} ${curta}`;
+    return `${u.brasoes} ${curta}` + (u.etapas_gratis ? ` (+${u.etapas_gratis} grátis)` : '');
 };
 
 export const nomeItem = (i: { nome_pt?: string | null; nome_en?: string | null; item_id?: number | null }) =>
