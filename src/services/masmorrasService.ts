@@ -62,6 +62,7 @@ export interface RankingRequest {
     amr?: string | null;
     primario?: 'simc' | 'amr';
     scenario?: string;
+    modo?: 'masmorras' | 'cofre';
     ilvl?: number;
     iteracoes_triagem?: number;
     iteracoes_refino?: number;

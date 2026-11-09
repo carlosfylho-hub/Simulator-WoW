@@ -62,6 +62,7 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario }) => {
     const [addon, setAddon] = useState<string>(() => carregarImportLocal() || '');
     const [amr, setAmr] = useState<string>(() => carregarAmrLocal() || '');
     const [primario, setPrimario] = usePersistedState<'simc' | 'amr'>('wowsim.masmorras.primario', 'simc');
+    const [modo, setModo] = usePersistedState<'masmorras' | 'cofre'>('wowsim.masmorras.modo', 'masmorras');
     const [ilvl, setIlvl] = usePersistedState<number>('wowsim.masmorras.ilvl', 341);
     const [itTriage, setItTriage] = usePersistedState<number>('wowsim.masmorras.itTriage', 300);
     const [itRefino, setItRefino] = usePersistedState<number>('wowsim.masmorras.itRefino', 3000);
@@ -189,10 +190,13 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario }) => {
         setJob(null);
         setCarregando(true);
         try {
+            const addonFinal =
+                modo === 'cofre' && addon.trim().length < 20 ? amr : addon;
             const criado = await criarRanking({
-                addon,
+                addon: addonFinal,
                 amr: amr.trim() ? amr : null,
-                primario,
+                primario: modo === 'cofre' && addonFinal === amr ? 'amr' : primario,
+                modo,
                 scenario,
                 ilvl,
                 iteracoes_triagem: itTriage,
@@ -229,7 +233,8 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario }) => {
     }, [resultado, ordem]);
 
     const ativo = job != null && !terminado(job.status);
-    const semAddon = addon.trim().length < 20;
+    const semAddon =
+        modo === 'cofre' ? amr.trim().length < 20 : addon.trim().length < 20;
 
     const alternar = (nome: string) =>
         setAbertas((atual) => {
@@ -350,7 +355,25 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario }) => {
                     </label>
                 </div>
 
-                {estimativa && (
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-zinc-400">
+                    <span>Analisar:</span>
+                    <button
+                        onClick={() => setModo('masmorras')}
+                        aria-pressed={modo === 'masmorras'}
+                        className={`px-3 py-1.5 rounded-md transition-colors ${modo === 'masmorras' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
+                    >
+                        Masmorras M+
+                    </button>
+                    <button
+                        onClick={() => setModo('cofre')}
+                        aria-pressed={modo === 'cofre'}
+                        className={`px-3 py-1.5 rounded-md transition-colors ${modo === 'cofre' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
+                    >
+                        Grande Cofre (.gv)
+                    </button>
+                </div>
+
+                {modo === 'masmorras' && estimativa && (
                     <div className="mt-3 rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-[11px]">
                         <span className="text-zinc-400">Estimativa: </span>
                         <span className="text-zinc-200 font-mono">
@@ -364,14 +387,16 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario }) => {
                 )}
 
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <button
-                        onClick={estimar}
-                        disabled={semAddon || estimando}
-                        className="inline-flex items-center space-x-2 px-3 py-2 rounded-lg border border-zinc-700 hover:border-zinc-500 disabled:opacity-50 text-zinc-200 text-sm transition"
-                    >
-                        {estimando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gauge className="w-4 h-4" />}
-                        <span>Estimar</span>
-                    </button>
+                    {modo === 'masmorras' && (
+                        <button
+                            onClick={estimar}
+                            disabled={semAddon || estimando}
+                            className="inline-flex items-center space-x-2 px-3 py-2 rounded-lg border border-zinc-700 hover:border-zinc-500 disabled:opacity-50 text-zinc-200 text-sm transition"
+                        >
+                            {estimando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gauge className="w-4 h-4" />}
+                            <span>Estimar</span>
+                        </button>
+                    )}
                     <button
                         onClick={iniciar}
                         disabled={semAddon || carregando || ativo}
@@ -501,7 +526,14 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario }) => {
                                                             style={{ width: `${largura}%` }}
                                                         />
                                                     </div>
-                                                    <span className="w-16 text-right font-semibold text-zinc-200">{pct(ganho)}</span>
+                                                    <span className="w-44 text-right font-semibold text-zinc-200">
+                                                        {pct(item.delta_cru_pct)}
+                                                        {item.delta_catalisado_pct != null && (
+                                                            <span className="text-amber-300">
+                                                                {' '}· cat {pct(item.delta_catalisado_pct)}
+                                                            </span>
+                                                        )}
+                                                    </span>
                                                     <span className={`w-64 text-right ${corEtiqueta(item.etiqueta)}`}>
                                                         {ROTULO_ETIQUETA[item.etiqueta]}
                                                     </span>
