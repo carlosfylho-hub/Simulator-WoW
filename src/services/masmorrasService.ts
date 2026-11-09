@@ -123,6 +123,11 @@ export interface CraftEmbelezamento {
     tipo?: 'adicionar' | 'troca' | 'peca';
     /** O que está sendo trocado (nome do embelezamento ou id da peça embutida). */
     troca_de?: string | null;
+    /** Dados visuais do Wowhead (A8): só exibição, nunca entram em cálculo. */
+    icone_url?: string | null;
+    texto_completo?: string | null;
+    materiais?: string[];
+    usado_em?: string[];
     ganho_pct: number;
     ganho_total_pct: number;
     limiar_pct: number;

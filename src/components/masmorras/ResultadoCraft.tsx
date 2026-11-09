@@ -100,7 +100,17 @@ export const ResultadoCraft: React.FC<{ craft: CraftResultado; selo?: string | n
                                 className={`rounded-lg border px-3 py-2 ${i < 2 && e.ganho_pct > e.limiar_pct ? 'border-destaque/50' : 'border-borda'}`}
                             >
                                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                                    <span className="text-sm font-medium text-texto">
+                                    <span className="flex items-center gap-2 text-sm font-medium text-texto">
+                                        {e.icone_url && (
+                                            <img
+                                                src={e.icone_url}
+                                                alt=""
+                                                loading="lazy"
+                                                width={20}
+                                                height={20}
+                                                className="shrink-0 rounded border border-borda"
+                                            />
+                                        )}
                                         {e.tipo === 'troca' && e.troca_de ? (
                                             <span className="mr-1 text-xs font-normal text-texto-3">
                                                 Trocar {e.troca_de} por
@@ -118,7 +128,21 @@ export const ResultadoCraft: React.FC<{ craft: CraftResultado; selo?: string | n
                                         <span className="ml-2 text-xs text-texto-3">em {slotPt(e.slot_medido)}</span>
                                     </span>
                                 </div>
-                                {e.descricao && <p className="mt-1 text-xs leading-snug text-texto-2">{e.descricao}</p>}
+                                {(e.texto_completo || e.descricao) && (
+                                    <p className="mt-1 text-xs leading-snug text-texto-2">
+                                        {e.texto_completo || e.descricao}
+                                    </p>
+                                )}
+                                {e.materiais && e.materiais.length > 0 && (
+                                    <details className="mt-1 text-xs text-texto-3">
+                                        <summary className="cursor-pointer text-texto-2">Materiais</summary>
+                                        <ul className="mt-1 list-disc pl-4">
+                                            {e.materiais.map((m) => (
+                                                <li key={m}>{m}</li>
+                                            ))}
+                                        </ul>
+                                    </details>
+                                )}
                             </div>
                         ))}
                     </div>
