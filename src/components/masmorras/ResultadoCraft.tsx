@@ -27,6 +27,7 @@ const Dupla: React.FC<{ d: DuplaCraft; nivel: string; destaque?: boolean }> = ({
                         nome={p.nome_pt || p.nome_en || `#${p.item_id}`}
                         slot={slotPt(p.slot)}
                         ilvl={p.ilvl}
+                        stats={p.stats}
                         fonte={`Craft (${nivel})`}
                         roleTag="Craftado"
                         degrau={nivel}

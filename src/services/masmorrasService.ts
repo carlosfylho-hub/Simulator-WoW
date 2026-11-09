@@ -112,7 +112,7 @@ export interface CraftPeca {
 
 export interface DuplaCraft {
     slots: string[];
-    pecas: { slot: string; item_id: number; nome_pt: string | null; nome_en: string | null; missiva: string; embutido: boolean; ilvl: number; centelhas: number; icone?: string | null }[];
+    pecas: { slot: string; item_id: number; nome_pt: string | null; nome_en: string | null; missiva: string; embutido: boolean; ilvl: number; centelhas: number; icone?: string | null; stats?: Record<string, number> | null }[];
     dps: number;
     ganho_pct: number;
     limiar_pct: number;
