@@ -85,6 +85,11 @@ export const TopGearPanel: React.FC<Props> = ({ scenario, setScenario }) => {
         else if (p === 'overnight') { setIteracoes(50000); setTargetError(0.02); setOrcamento(28800); }
     };
     const [pool, setPool] = usePersistedState<number>('wowsim.topgear.pool', 12);
+    const [catalisador, setCatalisador] = usePersistedState<boolean>('wowsim.topgear.catalisador', false);
+    const [maxCatalisados, setMaxCatalisados] = usePersistedState<number | null>(
+        'wowsim.topgear.maxCatalisados',
+        null,
+    );
     const [talentosExtra, setTalentosExtra] = usePersistedState<string>('wowsim.topgear.talentosExtra', '');
     const [job, setJob] = useState<TopGearJob | null>(null);
     const [resultado, setResultado] = useState<TopGearResultado | null>(null);
@@ -230,6 +235,8 @@ export const TopGearPanel: React.FC<Props> = ({ scenario, setScenario }) => {
                         orcamento_segundos: orcamento,
                         target_error: targetError > 0 ? targetError : null,
                         max_profilesets_rodada: 300,
+                        catalisador,
+                        max_catalisados: catalisador ? maxCatalisados : null,
                     }),
                 );
             } catch {
@@ -237,7 +244,7 @@ export const TopGearPanel: React.FC<Props> = ({ scenario, setScenario }) => {
             }
         }, 700);
         return () => window.clearTimeout(timer);
-    }, [addon, pool, iteracoes, orcamento, targetError]);
+    }, [addon, pool, iteracoes, orcamento, targetError, catalisador, maxCatalisados]);
 
     const iniciar = async () => {
         setErro(null);
@@ -261,6 +268,8 @@ export const TopGearPanel: React.FC<Props> = ({ scenario, setScenario }) => {
                     .split(/\r?\n/)
                     .map((codigo) => codigo.trim())
                     .filter(Boolean),
+                catalisador,
+                max_catalisados: catalisador ? maxCatalisados : null,
             });
             setJob(await consultarTopGear(criado.id));
         } catch (e: any) {
@@ -550,6 +559,40 @@ export const TopGearPanel: React.FC<Props> = ({ scenario, setScenario }) => {
                             value={pool}
                             onChange={(e) => setPool(Number(e.target.value))}
                             className="bg-zinc-950 border border-zinc-800 rounded-md px-2 py-1.5 text-xs text-zinc-100"
+                        />
+                    </label>
+                    <label className="text-[11px] text-zinc-400 flex flex-col gap-1 justify-end">
+                        <span className="inline-flex items-center gap-1">
+                            Catalisador
+                            <InfoTip titulo="Catalisador (tier)">Converte candidatos de cabeça/ombros/peito/mãos/pernas na peça de tier da classe, preservando trilha e stats base (redirected_base_stats no SimC). Mede gêmeos na pool e pacotes de 2/4 peças. Desligado por padrão.</InfoTip>
+                        </span>
+                        <span className="inline-flex items-center gap-2 h-[30px]">
+                            <input
+                                type="checkbox"
+                                checked={catalisador}
+                                onChange={(e) => setCatalisador(e.target.checked)}
+                                className="rounded border-zinc-700"
+                            />
+                            <span className="text-zinc-300">converter em tier</span>
+                        </span>
+                    </label>
+                    <label className="text-[11px] text-zinc-400 flex flex-col gap-1">
+                        <span className="inline-flex items-center gap-1">
+                            Cargas (máx.)
+                            <InfoTip titulo="Cargas do Catalisador">Quantas conversões novas a busca pode gastar. Vazio = sem teto no pedido (ainda respeita regras do conjunto). Peças que você já catalisou não consomem carga nova.</InfoTip>
+                        </span>
+                        <input
+                            type="number"
+                            min={0}
+                            max={5}
+                            disabled={!catalisador}
+                            placeholder="sem limite"
+                            value={maxCatalisados ?? ''}
+                            onChange={(e) => {
+                                const v = e.target.value;
+                                setMaxCatalisados(v === '' ? null : Math.min(5, Math.max(0, Number(v))));
+                            }}
+                            className="bg-zinc-950 border border-zinc-800 rounded-md px-2 py-1.5 text-xs text-zinc-100 disabled:opacity-40"
                         />
                     </label>
                 </div>

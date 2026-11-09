@@ -119,6 +119,10 @@ export interface TopGearRequest {
     podar?: boolean;
     pool_efetiva_por_slot?: number;
     verificar_podados?: boolean;
+    /** Converter candidatos de slot de tier via Catalisador (preserva trilha/stats). */
+    catalisador?: boolean;
+    /** Teto de cargas novas (0–5). null/omitido = sem limite além do inventário. */
+    max_catalisados?: number | null;
 }
 
 export interface TopGearHeuristicaItem {
@@ -147,6 +151,8 @@ export interface TopGearEstimativa {
     target_error_ignorado: boolean;
     contagens?: Record<string, number>;
     avisos: string[];
+    catalisador?: boolean;
+    extras_catalisador?: number;
 }
 
 export async function estimativaTopGear(params: {
@@ -156,6 +162,8 @@ export async function estimativaTopGear(params: {
     orcamento_segundos: number;
     target_error?: number | null;
     max_profilesets_rodada?: number;
+    catalisador?: boolean;
+    max_catalisados?: number | null;
 }): Promise<TopGearEstimativa> {
     const query = new URLSearchParams({
         addon: params.addon,
@@ -163,8 +171,10 @@ export async function estimativaTopGear(params: {
         iterations: String(params.iterations),
         orcamento_segundos: String(params.orcamento_segundos),
         max_profilesets_rodada: String(params.max_profilesets_rodada ?? 300),
+        catalisador: params.catalisador ? 'true' : 'false',
     });
     if (params.target_error != null) query.set('target_error', String(params.target_error));
+    if (params.max_catalisados != null) query.set('max_catalisados', String(params.max_catalisados));
     const resposta = await fetch(`/api/topgear/estimativa?${query.toString()}`);
     if (!resposta.ok) throw await erro(resposta);
     return resposta.json();
