@@ -145,6 +145,9 @@ export const WowItemTooltip: React.FC<Props> = ({ tooltipData, position, pinnedI
           </div>
         )}
 
+        {!item.primaryStat && !item.stamina && item.secondaryStats.length === 0 && (
+          <div className="text-zinc-400 italic">Atributos não catalogados para este item.</div>
+        )}
         {item.secondaryStats.map((st, i) => (
           <div key={i} className="text-[#00ff00] font-medium flex items-center justify-between">
             <span>+{st.value.toLocaleString('pt-BR')} {st.name}</span>

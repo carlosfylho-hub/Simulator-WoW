@@ -1022,7 +1022,7 @@ export function getItemTooltipSync(
     sourceLocation?: string;
     roleTag?: string;
     notes?: string;
-    stats?: { intellect?: number; stamina?: number; haste?: number; crit?: number; mastery?: number; versatility?: number };
+    stats?: { intellect?: number; agility?: number; strength?: number; stamina?: number; haste?: number; crit?: number; mastery?: number; versatility?: number };
     effect?: string;
     embellished?: boolean;
     embellishmentName?: string;
@@ -1075,9 +1075,12 @@ export function getItemTooltipSync(
   let stamina = official?.stamina;
   let secondaryStats = official?.secondaryStats ? [...official.secondaryStats] : [];
 
-  const candidateStats = fallbackOptions?.stats ?? catalogItem?.stats;
+  const opcoes = fallbackOptions?.stats;
+  const candidateStats = opcoes && Object.keys(opcoes).length ? opcoes : catalogItem?.stats;
   if (secondaryStats.length === 0 && candidateStats) {
     if (candidateStats.intellect) primaryStat = { name: 'Intelecto', value: candidateStats.intellect };
+    else if (candidateStats.agility) primaryStat = { name: 'Agilidade', value: candidateStats.agility };
+    else if (candidateStats.strength) primaryStat = { name: 'Força', value: candidateStats.strength };
     if (candidateStats.stamina) stamina = candidateStats.stamina;
     if (candidateStats.haste) secondaryStats.push({ name: 'Aceleração', value: candidateStats.haste, key: 'haste' });
     if (candidateStats.crit) secondaryStats.push({ name: 'Acerto Crítico', value: candidateStats.crit, key: 'crit' });
@@ -1085,13 +1088,8 @@ export function getItemTooltipSync(
     if (candidateStats.versatility) secondaryStats.push({ name: 'Versatilidade', value: candidateStats.versatility, key: 'versatility' });
   }
 
-  // Fallback default stats for display if not yet cataloged
-  if (!primaryStat && !slot.includes('Dedo') && !slot.includes('Pescoço')) {
-    primaryStat = { name: 'Intelecto', value: ilvl >= 334 ? 189 : 141 };
-  }
-  if (!stamina && !slot.includes('Berloque')) {
-    stamina = ilvl >= 334 ? 3910 : 2932;
-  }
+  // Sem atributos catalogados: a tooltip mostra "não catalogados" (P1: nunca
+  // inventar números — antes aparecia +189 Intelecto/+3.910 Vigor para qualquer item).
 
   const embellished =
     official?.embellished ?? fallbackOptions?.embellished ?? catalogItem?.embellished;

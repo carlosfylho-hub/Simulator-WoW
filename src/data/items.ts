@@ -1,4 +1,4 @@
-import { WowItem, ItemSlot } from '../types/wow';
+import { WowItem, ItemSlot, StatType } from '../types/wow';
 
 export const WOW_ITEMS: WowItem[] = [
   // --- CONJUNTO DE TECIDO DE DELVE: PISA-PIRAS (Vendedor Wah'du / Labirinto de Kindo'jan) ---
@@ -1045,6 +1045,8 @@ export interface CatalogItemLite {
   embelezamento_recomendado?: string | null;
   limite_embelezamentos?: number | null;
   icon?: string | null;
+  /** Atributos oficiais do backend (track máximo); null quando não catalogado. */
+  stats?: Partial<Record<StatType, number>> | null;
 }
 
 export function aplicarCatalogo(itens: CatalogItemLite[]): number {
@@ -1056,6 +1058,8 @@ export function aplicarCatalogo(itens: CatalogItemLite[]): number {
     if (item.slot) patch.slot = item.slot as ItemSlot;
     if (typeof item.ilvl === 'number') patch.ilvl = item.ilvl;
     if (item.icon) patch.icon = item.icon;
+    // Atributos do backend substituem os valores digitados à mão (que estavam 2–4× abaixo).
+    if (item.stats && Object.keys(item.stats).length) patch.stats = item.stats;
     if (item.craftado) patch.isCrafted = true;
     // Never clear a curated local embellishment flag with a catalog "false":
     // several craftable bases are used with an optional embellishment in the

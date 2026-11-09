@@ -37,6 +37,7 @@ export interface TrocaBuild {
     catalisado: boolean;
     ganho_pct: number;
     icone: string | null;
+    stats?: Record<string, number> | null;
 }
 
 export interface BuildResultado {
@@ -59,6 +60,7 @@ export interface LinhaMatriz {
     masmorra: string;
     slot: string;
     icone: string | null;
+    stats?: Record<string, number> | null;
     deltas: Record<string, number>;
     limiares: Record<string, number>;
     etiquetas: Record<string, Etiqueta>;
