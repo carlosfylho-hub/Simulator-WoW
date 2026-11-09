@@ -40,8 +40,11 @@ export const ResultadoCraft: React.FC<{ craft: CraftResultado; selo?: string | n
                                         itemId={p.item_id}
                                         icone={p.icone}
                                         nome={p.nome_pt || p.nome_en || `#${p.item_id}`}
-                                        slot={p.slot}
+                                        slot={slotPt(p.slot)}
                                         ilvl={p.ilvl}
+                                        stats={p.stats}
+                                        fonte={craft.custo.nivel ? `Craft (${craft.custo.nivel})` : 'Craft'}
+                                        roleTag="Craftado"
                                         tamanho={20}
                                     />
                                     {p.embutido && <span className="shrink-0 text-xs text-aviso">embelezado</span>}

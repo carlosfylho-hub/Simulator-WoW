@@ -1066,8 +1066,12 @@ export function getItemTooltipSync(
   const qualityColor = quality === 'epic' ? '#a335ee' : quality === 'rare' ? '#0070dd' : quality === 'artifact' ? '#e6cc80' : '#1eff00';
   const qualityBorder = quality === 'epic' ? 'border-[#a335ee] shadow-[0_0_10px_rgba(163,53,238,0.4)]' : 'border-[#0070dd] shadow-[0_0_8px_rgba(0,112,221,0.3)]';
 
-  const sourceLocation = official?.sourceLocation ?? catalogItem?.sourceDetail ?? fallbackOptions?.sourceLocation ?? 'Masmorra M+';
-  const roleTag = official?.roleTag ?? fallbackOptions?.roleTag ?? (catalogItem?.source === 'delve' ? 'Drop Imersão' : 'Drop M+');
+  // Sem fonte conhecida, dizemos a verdade (P1): nunca "Masmorra M+" por palpite.
+  const sourceLocation = official?.sourceLocation ?? catalogItem?.sourceDetail ?? fallbackOptions?.sourceLocation ?? 'Fonte não informada';
+  const roleTag =
+    official?.roleTag ??
+    fallbackOptions?.roleTag ??
+    (catalogItem?.source === 'delve' ? 'Drop Imersão' : catalogItem?.source ? 'Drop M+' : undefined);
   const notes = official?.notes ?? catalogItem?.notes ?? fallbackOptions?.notes ?? '';
 
   // Extract stats
