@@ -84,8 +84,8 @@ export const SimulationProgressBar: React.FC<Props> = ({
 
     return (
         <div className="mt-2">
-            <div className="mb-1 flex items-center justify-between text-[11px]">
-                <span className="font-medium text-zinc-300">
+            <div className="mb-1 flex items-center justify-between text-xs">
+                <span className="font-medium text-texto-2">
                     {label || (ativo ? 'Executando…' : 'Concluído')}
                     {ativo && rodada != null ? (
                         <span className="ml-2 text-zinc-500">
@@ -94,28 +94,28 @@ export const SimulationProgressBar: React.FC<Props> = ({
                         </span>
                     ) : null}
                 </span>
-                <span className="font-bold text-zinc-100">
+                <span className="num font-semibold text-texto">
                     {ativo ? (indeterminado ? '…' : `${pct.toFixed(0)}%`) : '100%'}
                 </span>
             </div>
 
-            <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-700">
+            {/* Trilho escuro e preenchimento dourado: 0% tem que PARECER vazio. */}
+            <div className="h-2.5 w-full overflow-hidden rounded-full border border-borda bg-fundo">
                 {indeterminado ? (
-                    <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-sky-400 via-cyan-400 to-purple-500 animate-wowsim-indeterminate" />
+                    <div className="h-full w-1/3 rounded-full bg-destaque animate-wowsim-indeterminate" />
                 ) : (
                     <div
-                        className={`h-full rounded-full bg-gradient-to-r from-sky-400 via-cyan-400 to-purple-500 transition-all duration-500 ${ativo ? 'animate-pulse' : ''
-                            }`}
+                        className="h-full rounded-full bg-destaque transition-all duration-500"
                         style={{ width: `${pct}%` }}
                     />
                 )}
             </div>
 
             {ativo && (
-                <div className="mt-1 flex items-center justify-between text-[10px] text-zinc-400">
+                <div className="mt-1 flex items-center justify-between text-xs text-texto-3">
                     {estourou ? (
                         <>
-                            <span className="text-amber-300/90">Mais que o previsto</span>
+                            <span className="text-aviso">Passou da estimativa — o simc ainda está trabalhando</span>
                             <span>decorrido {formatarDuracao(decorrido)}</span>
                         </>
                     ) : restante != null ? (

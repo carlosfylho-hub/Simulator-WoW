@@ -69,6 +69,8 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
     const [selo, setSelo] = useState<string | null>(null);
     const [erro, setErro] = useState<string | null>(null);
     const [criando, setCriando] = useState(false);
+    // Tempo previsto da execução em andamento (estimativa no clique), para a barra.
+    const [previsto, setPrevisto] = useState<number | null>(null);
     const pollingRef = useRef<number | null>(null);
     const resultadoRef = useRef<HTMLDivElement>(null);
 
@@ -192,6 +194,7 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
         setSelo(null);
         setJob(null);
         setCriando(true);
+        setPrevisto(estimativa?.segundos_estimados ?? null);
         try {
             const addonFinal = config.modo === 'cofre' && !temSimc ? perfil.amr : perfil.addon;
             const criado = await criarRanking({
@@ -295,12 +298,17 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
                         <span className="text-texto">{job.progresso?.estagio ?? 'preparando'}</span>
                         <span className="text-xs text-texto-3">job {job.id.slice(0, 8)}</span>
                     </div>
-                    <SimulationProgressBar ativo startedAt={job.started_at} orcamentoSegundos={config.orcamento} />
+                    {/* A barra segue a ESTIMATIVA; o tempo máximo é só o limite de segurança. */}
+                    <SimulationProgressBar
+                        ativo
+                        startedAt={job.started_at}
+                        orcamentoSegundos={previsto ? Math.min(previsto, config.orcamento) : config.orcamento}
+                    />
                 </Cartao>
             )}
 
             {job?.status === 'error' && job.erro && <Aviso tom="erro">{job.erro}</Aviso>}
-            {job?.status === 'cancelled' && <Aviso>Ranking cancelado.</Aviso>}
+            {job?.status === 'cancelled' && <Aviso>Execução cancelada.</Aviso>}
 
             {resultado && (
                 <div ref={resultadoRef} className="space-y-5 scroll-mt-20">

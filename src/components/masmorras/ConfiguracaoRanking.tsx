@@ -99,7 +99,9 @@ export const ConfiguracaoRanking: React.FC<Props> = ({
     onRodar,
     onCancelar,
 }) => {
-    const marcadas = config.builds.filter((b) => buildsDisponiveis.some((d) => d.nome === b));
+    // O modo Craft mede só a build atual: as builds marcadas não valem aqui.
+    const marcadas =
+        config.modo === 'craft' ? [] : config.builds.filter((b) => buildsDisponiveis.some((d) => d.nome === b));
     const problemas = problemasDaConfig(config);
     const temProblema = Object.keys(problemas).length > 0;
     const alternar = (nome: string) =>
