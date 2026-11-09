@@ -21,11 +21,17 @@ export interface PerfilEstado {
     resumo: CombinacaoResultado | null;
     validando: boolean;
     erro: string | null;
+    /** Quando a última validação terminou (sucesso ou erro). */
+    validadoEm: Date | null;
+    /** Início da validação em andamento (ms) e duração esperada, pela média das últimas. */
+    iniciadoEm: number | null;
+    estimativaMs: number;
     temPerfil: boolean;
     setAddon: (texto: string) => void;
     setAmr: (texto: string) => void;
     setPrimario: (p: 'simc' | 'amr') => void;
-    validar: () => Promise<void>;
+    /** ``manual``: garante que a barra fique visível por um instante. */
+    validar: (manual?: boolean) => Promise<void>;
 }
 
 const Ctx = createContext<PerfilEstado | null>(null);
@@ -39,6 +45,16 @@ export const PerfilProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const [resumo, setResumo] = useState<CombinacaoResultado | null>(null);
     const [validando, setValidando] = useState(false);
     const [erro, setErro] = useState<string | null>(null);
+    const [validadoEm, setValidadoEm] = useState<Date | null>(null);
+    const [iniciadoEm, setIniciadoEm] = useState<number | null>(null);
+    const [estimativaMs, setEstimativaMs] = useState<number>(() => {
+        try {
+            const v = Number(localStorage.getItem('wowsim.perfil.validacaoMs'));
+            return v > 0 ? v : 600;
+        } catch {
+            return 600;
+        }
+    });
     const sequencia = useRef(0);
 
     // Hidrata do backend quando o localStorage veio vazio (porta nova do desktop).
@@ -72,7 +88,7 @@ export const PerfilProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [amr, primario]);
 
-    const validar = async () => {
+    const validar = async (manual = false) => {
         const temSimc = addon.trim().length >= MINIMO;
         const temAmr = amr.trim().length >= MINIMO;
         if (!temSimc && !temAmr) {
@@ -82,6 +98,8 @@ export const PerfilProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
         const minha = ++sequencia.current;
         setValidando(true);
+        const inicio = Date.now();
+        setIniciadoEm(inicio);
         try {
             const r = await validarCombinacao({
                 simc: temSimc ? addon : null,
@@ -89,6 +107,20 @@ export const PerfilProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 primario: temAmr ? primario : 'simc',
                 incluir_inv: true,
             });
+            // Média móvel da duração real (sem a espera visual abaixo) para a próxima estimativa.
+            const gasto = Date.now() - inicio;
+            setEstimativaMs((anterior) => {
+                const nova = Math.round(anterior * 0.6 + gasto * 0.4);
+                try {
+                    localStorage.setItem('wowsim.perfil.validacaoMs', String(nova));
+                } catch {
+                    /* sem storage */
+                }
+                return nova;
+            });
+            // A validação leva ~0,2 s: no clique, segura a barra o bastante para ser vista.
+            const resta = (manual ? 700 : 0) - (Date.now() - inicio);
+            if (resta > 0) await new Promise((ok) => window.setTimeout(ok, resta));
             if (minha === sequencia.current) {
                 setResumo(r);
                 setErro(null);
@@ -99,7 +131,11 @@ export const PerfilProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 setErro(e?.message || 'Não foi possível ler o perfil.');
             }
         } finally {
-            if (minha === sequencia.current) setValidando(false);
+            if (minha === sequencia.current) {
+                setValidando(false);
+                setIniciadoEm(null);
+                setValidadoEm(new Date());
+            }
         }
     };
 
@@ -116,6 +152,9 @@ export const PerfilProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         resumo,
         validando,
         erro,
+        validadoEm,
+        iniciadoEm,
+        estimativaMs,
         temPerfil: addon.trim().length >= MINIMO || amr.trim().length >= MINIMO,
         setAddon,
         setAmr,

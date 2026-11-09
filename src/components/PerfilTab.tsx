@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { classeSpecPt, usePerfil } from '../context/PerfilContext';
 import { AreaTexto, Aviso, Botao, Cartao, Segmentado } from '../ui';
@@ -54,8 +54,15 @@ export const PerfilTab: React.FC<{ onPronto?: () => void }> = ({ onPronto }) => 
                     </>
                 )}
                 <div className="flex-1" />
-                <Botao variante="secundario" onClick={() => void p.validar()} carregando={p.validando}>
-                    Validar agora
+                {!p.validando && p.validadoEm && !p.erro && (
+                    <span className="flex items-center gap-1.5 text-xs text-texto-2">
+                        <CheckCircle2 className="w-4 h-4 text-ganho" />
+                        Validado às{' '}
+                        <span className="num">{p.validadoEm.toLocaleTimeString('pt-BR')}</span>
+                    </span>
+                )}
+                <Botao variante="secundario" onClick={() => void p.validar(true)} carregando={p.validando}>
+                    {p.validando ? 'Validando…' : 'Validar agora'}
                 </Botao>
                 {onPronto && (
                     <Botao variante="principal" disabled={!p.resumo} onClick={onPronto}>
@@ -63,6 +70,10 @@ export const PerfilTab: React.FC<{ onPronto?: () => void }> = ({ onPronto }) => 
                     </Botao>
                 )}
             </div>
+
+            {p.validando && p.iniciadoEm != null && (
+                <BarraValidacao inicio={p.iniciadoEm} estimativaMs={Math.max(p.estimativaMs, 700)} />
+            )}
 
             {p.erro && <Aviso tom="erro">{p.erro}</Aviso>}
 
@@ -96,6 +107,33 @@ export const PerfilTab: React.FC<{ onPronto?: () => void }> = ({ onPronto }) => 
                     )}
                 </Cartao>
             )}
+        </div>
+    );
+};
+
+/** Barra em tempo real: enche até a duração esperada; passou dela, vira "quase lá". */
+const BarraValidacao: React.FC<{ inicio: number; estimativaMs: number }> = ({ inicio, estimativaMs }) => {
+    const [agora, setAgora] = useState(() => Date.now());
+    useEffect(() => {
+        const id = window.setInterval(() => setAgora(Date.now()), 50);
+        return () => window.clearInterval(id);
+    }, []);
+    const decorrido = agora - inicio;
+    const pct = Math.min(95, (100 * decorrido) / estimativaMs);
+    const resta = Math.max(0, estimativaMs - decorrido) / 1000;
+    return (
+        <div className="space-y-1.5" role="status" aria-live="polite">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-superficie-2">
+                <div className="h-full rounded-full bg-destaque transition-[width] duration-75" style={{ width: `${pct}%` }} />
+            </div>
+            <div className="flex justify-between text-xs text-texto-2">
+                <span>Lendo os exports e cruzando SimC com AMR…</span>
+                <span className="num">
+                    {resta > 0
+                        ? `≈ ${resta.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} s restantes`
+                        : 'quase lá'}
+                </span>
+            </div>
         </div>
     );
 };
