@@ -172,6 +172,20 @@ export const ConfiguracaoRanking: React.FC<Props> = ({
                 </Recolhivel>
             </div>
 
+            {estimativa && !rodando && estimativa.segundos_estimados > config.orcamento && (
+                <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-aviso/40 bg-aviso/10 px-3 py-2 text-sm text-aviso">
+                    <span className="flex-1">
+                        A estimativa ({minutos(estimativa.segundos_estimados)}) passa do tempo máximo (
+                        {minutos(config.orcamento)}): o ranking pararia no meio.
+                    </span>
+                    {estimativa.orcamento_sugerido && (
+                        <Botao tamanho="sm" onClick={() => mudar({ orcamento: estimativa.orcamento_sugerido! })}>
+                            Ajustar para {minutos(estimativa.orcamento_sugerido)}
+                        </Botao>
+                    )}
+                </div>
+            )}
+
             <div className="mt-4 flex flex-wrap items-center justify-end gap-3 border-t border-borda pt-4">
                 {estimativa && !rodando && (
                     <span className="text-sm text-texto-2">

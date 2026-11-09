@@ -72,6 +72,9 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
     const temAmr = perfil.amr.trim().length >= 20;
     const podeRodar = config.modo === 'cofre' ? temAmr : temSimc;
     const buildsAtivas = config.builds.filter((n) => buildsDisp.some((b) => b.nome === n));
+    const cenariosDasBuilds = buildsAtivas.map(
+        (n) => config.cenarios[n] ?? buildsDisp.find((b) => b.nome === n)?.cenario_sugerido ?? 'dungeon_slice',
+    );
 
     // Builds do export: lidas sozinhas quando o perfil muda.
     useEffect(() => {
@@ -103,13 +106,15 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
                 amr: config.modo === 'cofre' ? perfil.amr : undefined,
                 builds: buildsAtivas.length,
                 medir_pesos: config.medirPesos,
+                scenario: config.scenario,
+                cenarios: cenariosDasBuilds,
             })
                 .then(setEstimativa)
                 .catch(() => setEstimativa(null));
         }, 800);
         return () => window.clearTimeout(t);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [podeRodar, perfil.addon, perfil.amr, config.modo, config.ilvl, config.itTriagem, config.itRefino, buildsAtivas.length, config.medirPesos]);
+    }, [podeRodar, perfil.addon, perfil.amr, config.modo, config.ilvl, config.itTriagem, config.itRefino, config.scenario, cenariosDasBuilds.join(','), config.medirPesos]);
 
     // Polling do job em andamento.
     useEffect(() => {
@@ -192,12 +197,7 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
                 orcamento_segundos: config.orcamento,
                 loadouts: buildsAtivas,
                 pesos_loadouts: Object.fromEntries(buildsAtivas.map((n) => [n, config.pesos[n] ?? 1])),
-                cenarios_loadouts: Object.fromEntries(
-                    buildsAtivas.map((n) => [
-                        n,
-                        config.cenarios[n] ?? buildsDisp.find((b) => b.nome === n)?.cenario_sugerido ?? 'dungeon_slice',
-                    ]),
-                ),
+                cenarios_loadouts: Object.fromEntries(buildsAtivas.map((n, i) => [n, cenariosDasBuilds[i]])),
                 medir_pesos: config.medirPesos,
             });
             setModoResultado(config.modo);

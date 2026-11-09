@@ -127,6 +127,7 @@ export interface RankingEstimativa {
     segundos_estimados: number;
     elegiveis_total: number;
     contagens: Record<string, number>;
+    orcamento_sugerido?: number;
 }
 
 async function erro(resposta: Response): Promise<Error> {
@@ -147,6 +148,8 @@ export async function estimativaRanking(params: {
     amr?: string;
     builds?: number;
     medir_pesos?: boolean;
+    scenario?: string;
+    cenarios?: string[];
 }): Promise<RankingEstimativa> {
     const query = new URLSearchParams({
         addon: params.addon,
@@ -158,6 +161,8 @@ export async function estimativaRanking(params: {
         medir_pesos: String(Boolean(params.medir_pesos)),
     });
     if (params.amr) query.set('amr', params.amr);
+    if (params.scenario) query.set('scenario', params.scenario);
+    if (params.cenarios?.length) query.set('cenarios', params.cenarios.join(','));
     const resposta = await fetch(`/api/masmorras/estimativa?${query.toString()}`);
     if (!resposta.ok) throw await erro(resposta);
     return resposta.json();
