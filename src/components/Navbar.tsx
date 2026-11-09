@@ -1,125 +1,152 @@
-import React from 'react';
-import { Flame, Bot } from 'lucide-react';
-import { ActiveSpec, CombatScenario } from '../types/wow';
-import { CENARIOS_PRINCIPAIS, CENARIOS_AVANCADOS, normalizarCenario } from '../data/scenarios';
+import React, { useEffect, useRef, useState } from 'react';
+import { ChevronDown, Hexagon, UserRound } from 'lucide-react';
+import { classeSpecPt, usePerfil } from '../context/PerfilContext';
 
-export type Area = 'simular' | 'explorar' | 'planejar';
+export type AbaPrincipal = 'masmorras' | 'perfil' | 'historico';
+export type AbaAvancada =
+    | 'topgear'
+    | 'droptimizer'
+    | 'inspecionar'
+    | 'builds'
+    | 'itens'
+    | 'runas'
+    | 'progressao'
+    | 'delves'
+    | 'consultor';
+export type Aba = AbaPrincipal | AbaAvancada;
 
-interface NavbarProps {
-  area: Area;
-  setArea: (area: Area) => void;
-  currentSpec: ActiveSpec;
-  setCurrentSpec: (spec: ActiveSpec) => void;
-  scenario: CombatScenario;
-  setScenario: (scen: CombatScenario) => void;
-  onOpenAiChat: () => void;
+export const ABAS_PRINCIPAIS: { id: AbaPrincipal; rotulo: string }[] = [
+    { id: 'masmorras', rotulo: 'Masmorras' },
+    { id: 'perfil', rotulo: 'Perfil' },
+    { id: 'historico', rotulo: 'Histórico' },
+];
+
+export const ABAS_AVANCADAS: { id: AbaAvancada; rotulo: string; grupo: string }[] = [
+    { id: 'topgear', rotulo: 'Top Gear', grupo: 'Simulação' },
+    { id: 'droptimizer', rotulo: 'Droptimizer', grupo: 'Simulação' },
+    { id: 'inspecionar', rotulo: 'Inspecionar SimC', grupo: 'Simulação' },
+    { id: 'builds', rotulo: 'Builds (antigo)', grupo: 'Simulação' },
+    { id: 'itens', rotulo: 'Itens', grupo: 'Consulta' },
+    { id: 'runas', rotulo: 'Runas do Fólio', grupo: 'Consulta' },
+    { id: 'progressao', rotulo: 'Progressão sem raide', grupo: 'Consulta' },
+    { id: 'delves', rotulo: 'Delves', grupo: 'Consulta' },
+    { id: 'consultor', rotulo: 'Consultor IA', grupo: 'Consulta' },
+];
+
+interface Props {
+    aba: Aba;
+    setAba: (a: Aba) => void;
 }
 
-const AREAS: { id: Area; label: string }[] = [
-  { id: 'simular', label: 'Simular' },
-  { id: 'explorar', label: 'Explorar' },
-  { id: 'planejar', label: 'Planejar' },
-];
+export const Navbar: React.FC<Props> = ({ aba, setAba }) => {
+    const { resumo, temPerfil } = usePerfil();
+    const [menu, setMenu] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+    const avancadaAtiva = ABAS_AVANCADAS.some((a) => a.id === aba);
 
-const SPECS: { id: ActiveSpec; label: string }[] = [
-  { id: 'demonology', label: 'Bruxo Demonologia' },
-  { id: 'affliction', label: 'Bruxo Suplício' },
-  { id: 'destruction', label: 'Bruxo Destruição' },
-  { id: 'balance', label: 'Druida Equilíbrio' },
-  { id: 'shadow', label: 'Sacerdote Sombra' },
-];
+    useEffect(() => {
+        if (!menu) return;
+        const fora = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setMenu(false);
+        const esc = (e: KeyboardEvent) => e.key === 'Escape' && setMenu(false);
+        document.addEventListener('mousedown', fora);
+        document.addEventListener('keydown', esc);
+        return () => {
+            document.removeEventListener('mousedown', fora);
+            document.removeEventListener('keydown', esc);
+        };
+    }, [menu]);
 
+    const grupos = Array.from(new Set(ABAS_AVANCADAS.map((a) => a.grupo)));
 
-export const Navbar: React.FC<NavbarProps> = ({
-  area,
-  setArea,
-  currentSpec,
-  setCurrentSpec,
-  scenario,
-  setScenario,
-  onOpenAiChat,
-}) => {
-  return (
-    <header className="sticky top-0 z-40 bg-zinc-950/90 backdrop-blur border-b border-zinc-800 text-zinc-100">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="h-14 flex items-center justify-between gap-4">
-          {/* Brand */}
-          <div className="flex items-center gap-2.5 flex-shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-              <Flame className="w-4 h-4 text-emerald-400" />
-            </div>
-            <div className="leading-tight">
-              <span className="text-sm font-semibold text-white">Simulador WoW</span>
-              <span className="hidden sm:block text-[10px] text-zinc-500">Midnight · S2 · 12.1.5</span>
-            </div>
-          </div>
+    return (
+        <header className="sticky top-0 z-40 border-b border-borda bg-fundo/95 backdrop-blur">
+            <div className="mx-auto flex h-14 max-w-5xl items-center gap-4 px-4">
+                <div className="flex shrink-0 items-center gap-2">
+                    <Hexagon className="w-5 h-5 text-destaque" />
+                    <span className="text-sm font-semibold text-texto">Simulador WoW</span>
+                </div>
 
-          {/* Primary navigation */}
-          <nav className="flex items-center gap-1">
-            {AREAS.map((item) => {
-              const ativo = area === item.id;
-              return (
+                <nav className="flex h-full items-stretch gap-1" aria-label="Telas">
+                    {ABAS_PRINCIPAIS.map((a) => {
+                        const ativa = aba === a.id;
+                        return (
+                            <button
+                                key={a.id}
+                                onClick={() => setAba(a.id)}
+                                aria-current={ativa ? 'page' : undefined}
+                                className={`relative px-3 text-sm transition-colors ${
+                                    ativa ? 'text-texto font-medium' : 'text-texto-2 hover:text-texto'
+                                }`}
+                            >
+                                {a.rotulo}
+                                {ativa && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-destaque" />}
+                            </button>
+                        );
+                    })}
+                </nav>
+
+                <div className="flex-1" />
+
                 <button
-                  key={item.id}
-                  onClick={() => setArea(item.id)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${ativo
-                    ? 'text-white bg-zinc-800'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+                    onClick={() => setAba('perfil')}
+                    title={temPerfil ? 'Perfil importado — clique para trocar' : 'Nenhum perfil importado'}
+                    className={`hidden items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs sm:inline-flex ${
+                        resumo ? 'border-borda text-texto-2 hover:text-texto' : 'border-aviso/50 text-aviso'
                     }`}
                 >
-                  {item.label}
+                    <UserRound className="w-4 h-4" />
+                    {resumo ? (
+                        <span className="max-w-[16rem] truncate">
+                            <span className="text-texto">{resumo.nome ?? 'Personagem'}</span>
+                            {' · '}
+                            {classeSpecPt(resumo.classe, resumo.spec)}
+                        </span>
+                    ) : (
+                        'Importar perfil'
+                    )}
                 </button>
-              );
-            })}
-          </nav>
 
-          {/* Compact settings */}
-          <div className="flex items-center gap-2">
-            <select
-              aria-label="Especialização"
-              value={currentSpec}
-              onChange={(e) => setCurrentSpec(e.target.value as ActiveSpec)}
-              className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-emerald-600"
-            >
-              {SPECS.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-
-            <select
-              aria-label="Cenário"
-              value={normalizarCenario(scenario)}
-              onChange={(e) => setScenario(e.target.value as CombatScenario)}
-              className="hidden lg:block bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-emerald-600"
-            >
-              <optgroup label="Principais">
-                {CENARIOS_PRINCIPAIS.map((s) => (
-                  <option key={s.valor} value={s.valor}>
-                    {s.rotulo}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="Mais cenários">
-                {CENARIOS_AVANCADOS.map((s) => (
-                  <option key={s.valor} value={s.valor}>
-                    {s.rotulo}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-
-            <button
-              onClick={onOpenAiChat}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors"
-            >
-              <Bot className="w-4 h-4" />
-              <span className="hidden sm:inline">Consultor</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
+                <div className="relative" ref={ref}>
+                    <button
+                        onClick={() => setMenu((v) => !v)}
+                        aria-expanded={menu}
+                        aria-haspopup="menu"
+                        className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm ${
+                            avancadaAtiva ? 'text-destaque' : 'text-texto-2 hover:text-texto'
+                        }`}
+                    >
+                        Avançado
+                        <ChevronDown className={`w-4 h-4 transition-transform ${menu ? 'rotate-180' : ''}`} />
+                    </button>
+                    {menu && (
+                        <div
+                            role="menu"
+                            className="absolute right-0 top-10 z-50 w-60 rounded-xl border border-borda-campo bg-superficie-2 p-1.5 shadow-2xl"
+                        >
+                            {grupos.map((g) => (
+                                <div key={g} className="py-1">
+                                    <div className="px-2.5 pb-1 text-xs font-medium text-texto-3">{g}</div>
+                                    {ABAS_AVANCADAS.filter((a) => a.grupo === g).map((a) => (
+                                        <button
+                                            key={a.id}
+                                            role="menuitem"
+                                            onClick={() => {
+                                                setAba(a.id);
+                                                setMenu(false);
+                                            }}
+                                            className={`block w-full rounded-lg px-2.5 py-1.5 text-left text-sm ${
+                                                aba === a.id ? 'bg-superficie text-destaque' : 'text-texto hover:bg-superficie'
+                                            }`}
+                                        >
+                                            {a.rotulo}
+                                        </button>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </header>
+    );
 };
