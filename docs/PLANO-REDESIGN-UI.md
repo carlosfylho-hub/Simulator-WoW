@@ -291,14 +291,14 @@ rodapé de 1 linha: premissa da chance (vem do backend, `premissa_chance`)
 
 | # | Tarefa | Status | Commit |
 | :-: | :--- | :-: | :-- |
-| U0 | Tokens em `index.css` + remapeamento `zinc-*` + base (`body`, foco, `.num`) | [ ] | |
-| U1 | Componentes `src/ui/` (§4.4) + mover `CopiarTexto` | [ ] | |
-| U2 | Casca: abas Masmorras/Perfil/Histórico, chip do perfil, menu Avançado, rodapé; tirar spec/cenário do cabeçalho | [ ] | |
-| U3 | Aba Perfil + `PerfilContext` | [ ] | |
-| U4 | Masmorras refeita (§5.3), dividida em arquivos | [ ] | |
-| U5 | Histórico | [ ] | |
-| U6 | Faixa "Ferramenta avançada" nas telas legadas + conferência visual | [ ] | |
-| U7 | Verificação (§8) e capturas de tela antes/depois em `docs/redesign/` | [ ] | |
+| U0 | Tokens em `index.css` + remapeamento `zinc-*` + base (`body`, foco, `.num`) | [x] | `535297e` |
+| U1 | Componentes `src/ui/` (§4.4) + mover `CopiarTexto` | [x] | `535297e` |
+| U2 | Casca: abas Masmorras/Perfil/Histórico, chip do perfil, menu Avançado, rodapé; tirar spec/cenário do cabeçalho | [x] | `b61b9a7` |
+| U3 | Aba Perfil + `PerfilContext` | [x] | `b61b9a7` |
+| U4 | Masmorras refeita (§5.3), dividida em arquivos | [x] | ver commit `feat(ui): tela de Masmorras refeita` |
+| U5 | Histórico | [x] | lista em `b61b9a7`; abrir resultado no commit do U4 |
+| U6 | Faixa "Ferramenta avançada" nas telas legadas + conferência visual | [~] | faixa feita em `b61b9a7`; falta revisar Top Gear/Droptimizer (fundo violeta próprio) e o resto das telas legadas |
+| U7 | Verificação (§8) e capturas de tela antes/depois em `docs/redesign/` | [~] | `docs/redesign/depois/` feito com dados de exemplo; falta o teste com o backend real no Windows |
 
 Uma tarefa = um commit (`feat(ui): ...`). Não misturar U4 com U2.
 
@@ -345,4 +345,7 @@ Uma tarefa = um commit (`feat(ui): ...`). Não misturar U4 com U2.
 
 | Data | Tarefa | Documento dizia | Código real | O que foi feito |
 | :--- | :-: | :--- | :--- | :--- |
-| | | | | |
+| 2026-11-08 | U2 | Consultor IA como aba | É um painel lateral (`AiConsultantDrawer`) | O item do menu Avançado abre o painel em vez de trocar de aba. |
+| 2026-11-08 | U4 | Botão "Estimar" e "Ler builds" | — | Viraram automáticos (debounce); menos botões na tela. |
+| 2026-11-08 | U4 | Base SimC/AMR em "Mais opções" | — | Ficou na aba Perfil (só aparece com AMR colado), que é de onde o perfil vem. |
+| 2026-11-08 | U7 | `npx vite build` | O `node_modules` da pasta é do Windows | Build conferido numa cópia com `npm install` no Linux; passa. |

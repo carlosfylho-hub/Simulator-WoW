@@ -39,16 +39,20 @@ export const PerfilTab: React.FC<{ onPronto?: () => void }> = ({ onPronto }) => 
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-                <span className="text-sm text-texto-2">Base dos itens equipados</span>
-                <Segmentado
-                    rotuloAria="Base dos itens equipados"
-                    opcoes={[
-                        { valor: 'simc', rotulo: 'SimC' },
-                        ...(temAmr ? [{ valor: 'amr' as const, rotulo: 'AMR' }] : []),
-                    ]}
-                    valor={p.primario}
-                    onChange={p.setPrimario}
-                />
+                {temAmr && (
+                    <>
+                        <span className="text-sm text-texto-2">Base dos itens equipados</span>
+                        <Segmentado<'simc' | 'amr'>
+                            rotuloAria="Base dos itens equipados"
+                            opcoes={[
+                                { valor: 'simc', rotulo: 'SimC' },
+                                { valor: 'amr', rotulo: 'AMR' },
+                            ]}
+                            valor={p.primario}
+                            onChange={p.setPrimario}
+                        />
+                    </>
+                )}
                 <div className="flex-1" />
                 <Botao variante="secundario" onClick={() => void p.validar()} carregando={p.validando}>
                     Validar agora

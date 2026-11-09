@@ -74,7 +74,15 @@ function Conteudo() {
             <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
                 {rotuloAvancado && <FaixaAvancado rotulo={rotuloAvancado} />}
 
-                {aba === 'masmorras' && <MasmorrasPanel scenario={scenario} setScenario={setCenario} />}
+                {aba === 'masmorras' && (
+                    <MasmorrasPanel
+                        scenario={scenario}
+                        setScenario={setCenario}
+                        abrirJob={jobParaAbrir}
+                        onJobAberto={() => setJobParaAbrir(null)}
+                        irParaPerfil={() => setAba('perfil')}
+                    />
+                )}
                 {aba === 'perfil' && <PerfilTab onPronto={() => setAba('masmorras')} />}
                 {aba === 'historico' && (
                     <HistoricoTab
@@ -108,8 +116,6 @@ function Conteudo() {
                 Midnight 12.1.5 · Temporada 2 · números de DPS só do SimulationCraft
             </footer>
 
-            {/* Reservado para o U4: abrir um resultado do Histórico na aba Masmorras. */}
-            <span hidden data-job-para-abrir={jobParaAbrir ?? ''} />
         </div>
     );
 }
