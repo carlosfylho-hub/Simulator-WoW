@@ -5,7 +5,7 @@ import { CENARIOS_DROPDOWN, DESCRICAO_CENARIO } from '../../data/scenarios';
 import { Botao, Campo, Cartao, Numero, Recolhivel, Segmentado, Selecao } from '../../ui';
 
 export interface Config {
-    modo: 'masmorras' | 'cofre';
+    modo: 'masmorras' | 'cofre' | 'craft';
     ilvl: number;            // atalho antigo; o pedido usa trilha + rank + forja
     trilha: 'heroi' | 'mito';
     rank: number;
@@ -123,6 +123,7 @@ export const ConfiguracaoRanking: React.FC<Props> = ({
             </div>
 
             <div className="mt-4 space-y-3 border-t border-borda pt-3">
+                {config.modo !== 'craft' && (
                 <Recolhivel
                     titulo="Builds"
                     resumo={marcadas.length ? `${marcadas.length} marcada(s)` : 'só a build atual'}
@@ -182,6 +183,7 @@ export const ConfiguracaoRanking: React.FC<Props> = ({
                         </div>
                     )}
                 </Recolhivel>
+                )}
 
                 <Recolhivel titulo="Mais opções" resumo={config.medirPesos ? 'com escala do Pawn' : undefined}>
                     <div className="grid gap-4 sm:grid-cols-3">

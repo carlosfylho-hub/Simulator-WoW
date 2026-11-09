@@ -1,0 +1,116 @@
+import React from 'react';
+import { Gem, Hammer } from 'lucide-react';
+import { CraftResultado } from '../../services/masmorrasService';
+import { Aviso, Cartao, Delta, ItemIcone } from '../../ui';
+import { slotPt } from './rotulos';
+
+/** Modo Craft: peça + missiva por slot e embelezamentos, todos medidos pelo simc. */
+export const ResultadoCraft: React.FC<{ craft: CraftResultado; selo?: string | null }> = ({ craft, selo }) => {
+    const servem = craft.pecas.filter((p) => p.serve);
+    const melhoresEmb = craft.embelezamentos.slice(0, 2);
+    return (
+        <div className="space-y-5">
+            <Cartao
+                titulo={
+                    <span className="flex items-center gap-2">
+                        <Hammer className="w-4 h-4 text-destaque" /> Peças para craftar
+                    </span>
+                }
+            >
+                <p className="-mt-1 mb-3 text-xs text-texto-3">
+                    {craft.custo.nivel} · nível <span className="num">{craft.custo.ilvl}</span> · custo por peça:{' '}
+                    <span className="text-texto-2">
+                        {craft.custo.brasoes} {craft.custo.moeda.includes('Mítico') ? 'Brasões Míticos' : 'Brasões de Herói'} +{' '}
+                        {craft.custo.centelhas} Centelhas de Marés
+                    </span>
+                    {selo ? ` · ${selo}` : ''}
+                </p>
+                {craft.pecas.length === 0 ? (
+                    <p className="text-sm text-texto-2">Nenhuma peça craftável medida.</p>
+                ) : (
+                    <div className="space-y-1">
+                        {craft.pecas.map((p) => (
+                            <div
+                                key={`${p.slot}-${p.item_id}`}
+                                className={`grid grid-cols-[6rem_minmax(0,1fr)_minmax(0,11rem)_5.5rem] items-center gap-3 rounded-lg px-2 py-1.5 text-sm ${p.serve ? '' : 'opacity-60'}`}
+                            >
+                                <span className="text-xs text-texto-3">{slotPt(p.slot)}</span>
+                                <span className="flex min-w-0 items-center gap-1.5">
+                                    <ItemIcone
+                                        itemId={p.item_id}
+                                        icone={p.icone}
+                                        nome={p.nome_pt || p.nome_en || `#${p.item_id}`}
+                                        slot={p.slot}
+                                        ilvl={p.ilvl}
+                                        tamanho={20}
+                                    />
+                                    {p.embutido && <span className="shrink-0 text-xs text-aviso">embelezado</span>}
+                                </span>
+                                <span className="truncate text-xs text-texto-2" title="Missiva Talassiana: par de secundários garantido">
+                                    {p.missiva}
+                                </span>
+                                <span className="text-right">
+                                    <Delta valor={p.ganho_pct} limiar={p.limiar_pct} />
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                <p className="mt-3 text-xs text-texto-3">
+                    {servem.length
+                        ? `${servem.length} peça(s) superam o que você usa hoje. O ganho é da peça sozinha, sem embelezamento.`
+                        : 'Nenhuma peça craftada supera o que você usa hoje (sem contar embelezamento).'}
+                </p>
+            </Cartao>
+
+            <Cartao
+                titulo={
+                    <span className="flex items-center gap-2">
+                        <Gem className="w-4 h-4 text-destaque" /> Embelezamentos
+                    </span>
+                }
+            >
+                <p className="-mt-1 mb-3 text-xs text-texto-3">{craft.limite_embelezamentos} Ganho = só o efeito, medido na peça indicada.</p>
+                {craft.embelezamentos.length === 0 ? (
+                    <p className="text-sm text-texto-2">Nenhum embelezamento pôde ser medido.</p>
+                ) : (
+                    <div className="space-y-2">
+                        {craft.embelezamentos.map((e, i) => (
+                            <div
+                                key={e.reagente_id}
+                                className={`rounded-lg border px-3 py-2 ${i < 2 && e.ganho_pct > e.limiar_pct ? 'border-destaque/50' : 'border-borda'}`}
+                            >
+                                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                    <span className="text-sm font-medium text-texto">
+                                        {e.nome_pt || e.nome_en}
+                                        <span className="ml-2 text-xs font-normal text-texto-3">{e.nome_en}</span>
+                                    </span>
+                                    <span className="text-sm">
+                                        <Delta valor={e.ganho_pct} limiar={e.limiar_pct} />
+                                        <span className="ml-2 text-xs text-texto-3">em {slotPt(e.slot_medido)}</span>
+                                    </span>
+                                </div>
+                                {e.descricao && <p className="mt-1 text-xs leading-snug text-texto-2">{e.descricao}</p>}
+                            </div>
+                        ))}
+                    </div>
+                )}
+                {melhoresEmb.length === 2 && melhoresEmb.every((e) => e.ganho_pct > e.limiar_pct) && (
+                    <p className="mt-3 text-sm text-texto">
+                        Sugestão: <span className="text-destaque">{melhoresEmb[0].nome_pt}</span> +{' '}
+                        <span className="text-destaque">{melhoresEmb[1].nome_pt}</span> (os dois que mais rendem; o jogo
+                        permite 2).
+                    </p>
+                )}
+            </Cartao>
+
+            {craft.avisos.length > 0 && (
+                <Aviso tom="aviso">
+                    {craft.avisos.map((a, i) => (
+                        <div key={i}>{a}</div>
+                    ))}
+                </Aviso>
+            )}
+        </div>
+    );
+};

@@ -19,6 +19,7 @@ import { Config, ConfiguracaoRanking } from './masmorras/ConfiguracaoRanking';
 import { ResultadoRanking } from './masmorras/ResultadoRanking';
 import { PorBuild } from './masmorras/PorBuild';
 import { LevarParaOJogo } from './masmorras/LevarParaOJogo';
+import { ResultadoCraft } from './masmorras/ResultadoCraft';
 
 interface Props {
     scenario: string;
@@ -64,7 +65,7 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
     const [estimativa, setEstimativa] = useState<RankingEstimativa | null>(null);
     const [job, setJob] = useState<RankingJob | null>(null);
     const [resultado, setResultado] = useState<RankingResult | null>(null);
-    const [modoResultado, setModoResultado] = useState<'masmorras' | 'cofre'>('masmorras');
+    const [modoResultado, setModoResultado] = useState<'masmorras' | 'cofre' | 'craft'>('masmorras');
     const [selo, setSelo] = useState<string | null>(null);
     const [erro, setErro] = useState<string | null>(null);
     const [criando, setCriando] = useState(false);
@@ -74,7 +75,9 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
     const temSimc = perfil.addon.trim().length >= 20;
     const temAmr = perfil.amr.trim().length >= 20;
     const podeRodar = config.modo === 'cofre' ? temAmr : temSimc;
-    const buildsAtivas = config.builds.filter((n) => buildsDisp.some((b) => b.nome === n));
+    // O modo Craft mede só a build atual.
+    const buildsAtivas =
+        config.modo === 'craft' ? [] : config.builds.filter((n) => buildsDisp.some((b) => b.nome === n));
     const cenariosDasBuilds = buildsAtivas.map(
         (n) => config.cenarios[n] ?? buildsDisp.find((b) => b.nome === n)?.cenario_sugerido ?? 'dungeon_slice',
     );
@@ -157,7 +160,7 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
             try {
                 const j = await consultarRanking(abrirJob);
                 setJob(j);
-                setModoResultado((j.request?.modo as 'masmorras' | 'cofre') ?? 'masmorras');
+                setModoResultado((j.request?.modo as 'masmorras' | 'cofre' | 'craft') ?? 'masmorras');
                 setResultado(await resultadoRanking(abrirJob));
                 setSelo(
                     j.created_at
@@ -238,7 +241,9 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
                     <p className="text-sm text-texto-2">
                         {config.modo === 'cofre'
                             ? 'Qual opção do Grande Cofre rende mais para o seu conjunto.'
-                            : 'Em qual masmorra vale gastar o bônus roll.'}
+                            : config.modo === 'craft'
+                              ? 'Qual peça craftar, com qual missiva e qual embelezamento.'
+                              : 'Em qual masmorra vale gastar o bônus roll.'}
                     </p>
                 </div>
                 <Segmentado
@@ -246,6 +251,7 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
                     opcoes={[
                         { valor: 'masmorras', rotulo: 'Masmorras M+' },
                         { valor: 'cofre', rotulo: 'Grande Cofre' },
+                        { valor: 'craft', rotulo: 'Craft' },
                     ]}
                     valor={config.modo}
                     onChange={(modo) => mudar({ modo })}
@@ -298,11 +304,17 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
 
             {resultado && (
                 <div ref={resultadoRef} className="space-y-5 scroll-mt-20">
-                    <ResultadoRanking resultado={resultado} modo={modoResultado} selo={selo} />
-                    <PorBuild resultado={resultado} />
+                    {resultado.craft ? (
+                        <ResultadoCraft craft={resultado.craft} selo={selo} />
+                    ) : (
+                        <>
+                            <ResultadoRanking resultado={resultado} modo={modoResultado} selo={selo} />
+                            <PorBuild resultado={resultado} />
+                        </>
+                    )}
                     <LevarParaOJogo key={job?.id ?? 'r'} resultado={resultado} />
                     <div className="space-y-1 text-xs text-texto-3">
-                        <p>{resultado.premissa_chance}</p>
+                        {!resultado.craft && <p>{resultado.premissa_chance}</p>}
                         {resultado.avisos.map((a, i) => (
                             <p key={i} className="text-aviso">
                                 • {a}

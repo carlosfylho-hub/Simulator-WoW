@@ -86,6 +86,40 @@ export interface BuildDisponivel {
     cenario_sugerido: string;
 }
 
+export interface CraftPeca {
+    slot: string;
+    item_id: number;
+    nome_pt: string | null;
+    nome_en: string | null;
+    missiva: string;
+    secundarios: string[];
+    ganho_pct: number;
+    limiar_pct: number;
+    serve: boolean;
+    embutido: boolean;
+    ilvl: number;
+    icone?: string | null;
+}
+
+export interface CraftEmbelezamento {
+    nome_pt: string | null;
+    nome_en: string;
+    descricao: string | null;
+    reagente_id: number;
+    slot_medido: string;
+    ganho_pct: number;
+    ganho_total_pct: number;
+    limiar_pct: number;
+}
+
+export interface CraftResultado {
+    pecas: CraftPeca[];
+    embelezamentos: CraftEmbelezamento[];
+    custo: { ilvl: number; nivel: string; brasoes: number; moeda: string; centelhas: number; nota: string };
+    limite_embelezamentos: string;
+    avisos: string[];
+}
+
 export interface RankingResult {
     base_dps: number;
     cenario: string;
@@ -102,6 +136,7 @@ export interface RankingResult {
     pawn_atual: string | null;
     pawn_mistura: string | null;
     pawn_iguais: string[][];
+    craft?: CraftResultado | null;
 }
 
 export interface RankingProgresso {
@@ -127,7 +162,7 @@ export interface RankingRequest {
     amr?: string | null;
     primario?: 'simc' | 'amr';
     scenario?: string;
-    modo?: 'masmorras' | 'cofre';
+    modo?: 'masmorras' | 'cofre' | 'craft';
     ilvl?: number;
     trilha?: 'heroi' | 'mito';
     rank?: number;
@@ -163,7 +198,7 @@ export async function estimativaRanking(params: {
     ilvl: number;
     iteracoes_triagem: number;
     iteracoes_refino: number;
-    modo?: 'masmorras' | 'cofre';
+    modo?: 'masmorras' | 'cofre' | 'craft';
     amr?: string;
     builds?: number;
     medir_pesos?: boolean;

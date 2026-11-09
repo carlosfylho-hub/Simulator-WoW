@@ -89,7 +89,7 @@ const LinhaMasmorra: React.FC<{ masmorra: MasmorraRanking; posicao: number; aber
 
 interface Props {
     resultado: RankingResult;
-    modo: 'masmorras' | 'cofre';
+    modo: 'masmorras' | 'cofre' | 'craft';
     /** "Resultado de dd/mm hh:mm" quando aberto pelo Histórico. */
     selo?: string | null;
 }
