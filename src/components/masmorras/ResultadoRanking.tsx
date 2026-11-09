@@ -140,6 +140,32 @@ export const ResultadoRanking: React.FC<Props> = ({ resultado, modo, selo }) => 
                 {selo ? ` · ${selo}` : ''}
             </p>
 
+            <details className="mb-3 text-xs text-texto-3">
+                <summary className="cursor-pointer text-texto-2 hover:text-texto">Como ler este resultado</summary>
+                <ul className="mt-2 space-y-1 leading-snug">
+                    <li>
+                        <strong className="text-texto-2">servem</strong>: quantos itens dessa masmorra aumentam o seu dano
+                        (acima da margem de erro). <strong className="text-texto-2">%</strong> ao lado: chance de o bônus
+                        roll cair num item que serve.
+                    </li>
+                    <li>
+                        <strong className="text-texto-2">maior</strong>: o maior ganho de dano de um único item dela.
+                    </li>
+                    <li>
+                        Em cada item: o primeiro % é o ganho usando o item como ele cai; <strong className="text-texto-2">cat</strong>{' '}
+                        é o ganho se você transformar a peça em tier no Catalisador.
+                    </li>
+                    <li>
+                        <span className="text-ganho">verde</span> = ganho real, <span className="text-perda">vermelho</span> = perda,
+                        cinza = empate dentro da margem de erro (não vale trocar).
+                    </li>
+                    <li>
+                        <strong className="text-texto-2">→ 6/6</strong>: brasões que faltam para upar o item até o máximo da
+                        trilha (custo cheio, sem o desconto de slot do jogo).
+                    </li>
+                </ul>
+            </details>
+
             {!melhor || melhor.servem === 0 ? (
                 <p className="text-sm text-texto-2">Nenhum item medido é upgrade para o seu conjunto atual.</p>
             ) : (

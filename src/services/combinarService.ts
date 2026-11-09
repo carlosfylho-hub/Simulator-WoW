@@ -1,3 +1,4 @@
+import { erroDaResposta } from './erroApi';
 /**
  * Validação de combinação SimC + AMR (endpoint /api/import/combinar).
  *
@@ -36,14 +37,8 @@ export interface CombinarRequest {
     incluir_inv?: boolean;
 }
 
-async function erro(resposta: Response): Promise<Error> {
-    try {
-        const corpo = await resposta.json();
-        return new Error(corpo?.detail || `Falha (${resposta.status})`);
-    } catch {
-        return new Error(`Falha (${resposta.status})`);
-    }
-}
+// Lista de erros de validação vira texto legível (antes aparecia "[object Object]").
+const erro = erroDaResposta;
 
 export async function validarCombinacao(pedido: CombinarRequest): Promise<CombinacaoResultado> {
     const resposta = await fetch('/api/import/combinar', {

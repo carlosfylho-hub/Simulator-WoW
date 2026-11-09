@@ -345,6 +345,7 @@ Uma tarefa = um commit (`feat(ui): ...`). Não misturar U4 com U2.
 
 | Data | Tarefa | Documento dizia | Código real | O que foi feito |
 | :--- | :-: | :--- | :--- | :--- |
+| 2026-11-09 | §3.3 | "Nada de parágrafo fixo; explicação vai para o ⓘ" | O usuário não conseguia configurar: pediu explicação de cada campo para aprender | **Regra revista:** todo campo tem uma linha de ajuda visível embaixo + ⓘ com o detalhe; guia "Como configurar" recolhível no topo; "Como ler este resultado" no ranking; valores inválidos ficam em vermelho com o motivo e bloqueiam o botão. |
 | 2026-11-08 | U2 | Consultor IA como aba | É um painel lateral (`AiConsultantDrawer`) | O item do menu Avançado abre o painel em vez de trocar de aba. |
 | 2026-11-08 | U4 | Botão "Estimar" e "Ler builds" | — | Viraram automáticos (debounce); menos botões na tela. |
 | 2026-11-08 | U4 | Base SimC/AMR em "Mais opções" | — | Ficou na aba Perfil (só aparece com AMR colado), que é de onde o perfil vem. |

@@ -1,3 +1,4 @@
+import { erroDaResposta } from './erroApi';
 export type RankingStatus = 'pending' | 'running' | 'done' | 'error' | 'cancelled';
 export type Etiqueta = 'direto' | 'catalisar' | 'ambos' | 'nao_serve';
 
@@ -184,14 +185,8 @@ export interface RankingEstimativa {
     orcamento_sugerido?: number;
 }
 
-async function erro(resposta: Response): Promise<Error> {
-    try {
-        const corpo = await resposta.json();
-        return new Error(corpo?.detail || `Falha (${resposta.status})`);
-    } catch {
-        return new Error(`Falha (${resposta.status})`);
-    }
-}
+// Lista de erros de validação vira texto legível (antes aparecia "[object Object]").
+const erro = erroDaResposta;
 
 export async function estimativaRanking(params: {
     addon: string;
