@@ -152,6 +152,8 @@ export interface RankingResult {
     masmorras: MasmorraRanking[];
     premissa_chance: string;
     avisos: string[];
+    /** Informações neutras (ex.: .inv mesclado), fora dos avisos âmbar (P-053). */
+    informacoes?: string[];
     builds: BuildResultado[];
     matriz: LinhaMatriz[];
     pesos_builds: Record<string, number>;

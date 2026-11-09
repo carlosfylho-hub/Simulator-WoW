@@ -166,6 +166,14 @@ export const ResultadoRanking: React.FC<Props> = ({ resultado, modo, selo }) => 
                 </ul>
             </details>
 
+            {resultado.informacoes && resultado.informacoes.length > 0 && (
+                <div className="mb-3 space-y-1 text-xs text-texto-3">
+                    {resultado.informacoes.map((texto, i) => (
+                        <p key={i}>{texto}</p>
+                    ))}
+                </div>
+            )}
+
             {!melhor || melhor.servem === 0 ? (
                 <p className="text-sm text-texto-2">Nenhum item medido é upgrade para o seu conjunto atual.</p>
             ) : (
