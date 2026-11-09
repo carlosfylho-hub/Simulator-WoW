@@ -31,9 +31,10 @@ const Dupla: React.FC<{ d: DuplaCraft; nivel: string; destaque?: boolean }> = ({
                         fonte={`Craft (${nivel})`}
                         roleTag="Craftado"
                         degrau={nivel}
+                        efeitoEmbutido={p.efeito}
                         tamanho={20}
                     />
-                    {p.embutido && <span className="shrink-0 text-xs text-aviso">embelezado</span>}
+                    {p.embutido && <span className="shrink-0 cursor-help text-xs text-aviso" title={p.efeito ?? undefined}>embelezado</span>}
                 </span>
                 <span className="truncate text-xs text-texto-2">{p.missiva}{p.centelhas > 2 ? ` · ${p.centelhas} Centelhas` : ''}</span>
             </div>
@@ -116,9 +117,10 @@ export const ResultadoCraft: React.FC<{ craft: CraftResultado; selo?: string | n
                                         fonte={craft.custo.nivel ? `Craft (${craft.custo.nivel})` : 'Craft'}
                                         roleTag="Craftado"
                                         degrau={craft.custo.nivel}
+                                        efeitoEmbutido={p.efeito}
                                         tamanho={20}
                                     />
-                                    {p.embutido && <span className="shrink-0 text-xs text-aviso">embelezado</span>}
+                                    {p.embutido && <span className="shrink-0 cursor-help text-xs text-aviso" title={p.efeito ?? undefined}>embelezado</span>}
                                 </span>
                                 <span className="truncate text-xs text-texto-2" title="Missiva Talassiana: par de secundários garantido">
                                     {p.missiva}

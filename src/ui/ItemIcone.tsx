@@ -15,6 +15,8 @@ interface Props {
     roleTag?: string | null;
     /** Degrau/nível já conhecido para a tooltip (ex.: "Herói qualidade 5"). */
     degrau?: string | null;
+    /** Embelezamento que já vem no item: liga a seção "Embelezado" com o texto. */
+    efeitoEmbutido?: string | null;
     tamanho?: number;
 }
 
@@ -29,6 +31,7 @@ export const ItemIcone: React.FC<Props> = ({
     fonte,
     roleTag,
     degrau,
+    efeitoEmbutido,
     tamanho = 24,
 }) => {
     const { showTooltip, hideTooltip } = useItemTooltip();
@@ -49,6 +52,9 @@ export const ItemIcone: React.FC<Props> = ({
                     sourceLocation: fonte ?? undefined,
                     roleTag: roleTag ?? undefined,
                     trackLabel: degrau ?? undefined,
+                    ...(efeitoEmbutido
+                        ? { embellished: true, embellishmentName: 'do próprio item (vem ao craftar)', embellishmentDescription: efeitoEmbutido }
+                        : {}),
                 })
             }
             onMouseLeave={hideTooltip}
