@@ -11,8 +11,11 @@ import {
     consultarRanking,
     criarRanking,
     estimativaRanking,
+    listarBuilds,
     resultadoRanking,
+    BuildDisponivel,
 } from '../services/masmorrasService';
+import { ResultadoBuilds, SeletorBuilds } from './MasmorrasBuilds';
 import { carregarImportLocal, carregarImportRemoto, salvarImport } from '../services/simcStorage';
 import {
     assinarAmrLocal,
@@ -68,6 +71,12 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario }) => {
     const [itRefino, setItRefino] = usePersistedState<number>('wowsim.masmorras.itRefino', 3000);
     const [orcamento, setOrcamento] = usePersistedState<number>('wowsim.masmorras.orcamento', 900);
     const [ordem, setOrdem] = useState<'quantidade' | 'maior'>('quantidade');
+    const [buildsDisp, setBuildsDisp] = useState<BuildDisponivel[]>([]);
+    const [buildsSel, setBuildsSel] = usePersistedState<string[]>('wowsim.masmorras.builds', []);
+    const [pesosBuilds, setPesosBuilds] = usePersistedState<Record<string, number>>('wowsim.masmorras.pesosBuilds', {});
+    const [cenariosBuilds, setCenariosBuilds] = usePersistedState<Record<string, string>>('wowsim.masmorras.cenariosBuilds', {});
+    const [medirPesos, setMedirPesos] = usePersistedState<boolean>('wowsim.masmorras.medirPesos', false);
+    const [lendoBuilds, setLendoBuilds] = useState(false);
     const [abertas, setAbertas] = useState<Set<string>>(new Set());
     const [job, setJob] = useState<RankingJob | null>(null);
     const [resultado, setResultado] = useState<RankingResult | null>(null);
@@ -164,6 +173,22 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario }) => {
         }
     }, [resultado]);
 
+    const lerBuilds = async () => {
+        setErro(null);
+        setLendoBuilds(true);
+        try {
+            const r = await listarBuilds(addon);
+            setBuildsDisp(r.builds);
+            setBuildsSel(buildsSel.filter((n) => r.builds.some((b) => b.nome === n)));
+        } catch (e: any) {
+            setErro(e?.message || 'Falha ao ler as builds.');
+        } finally {
+            setLendoBuilds(false);
+        }
+    };
+
+    const buildsAtivas = buildsDisp.length > 0 ? buildsSel.filter((n) => buildsDisp.some((b) => b.nome === n)) : buildsSel;
+
     const estimar = async () => {
         setErro(null);
         setEstimando(true);
@@ -174,6 +199,10 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario }) => {
                     ilvl,
                     iteracoes_triagem: itTriage,
                     iteracoes_refino: itRefino,
+                    modo,
+                    amr: modo === 'cofre' ? amr : undefined,
+                    builds: buildsAtivas.length,
+                    medir_pesos: medirPesos,
                 }),
             );
         } catch (e: any) {
@@ -202,6 +231,15 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario }) => {
                 iteracoes_triagem: itTriage,
                 iteracoes_refino: itRefino,
                 orcamento_segundos: orcamento,
+                loadouts: buildsAtivas,
+                pesos_loadouts: Object.fromEntries(buildsAtivas.map((n) => [n, pesosBuilds[n] ?? 1])),
+                cenarios_loadouts: Object.fromEntries(
+                    buildsAtivas.map((n) => [
+                        n,
+                        cenariosBuilds[n] ?? buildsDisp.find((b) => b.nome === n)?.cenario_sugerido ?? 'dungeon_slice',
+                    ]),
+                ),
+                medir_pesos: medirPesos,
             });
             setJob(await consultarRanking(criado.id));
         } catch (e: any) {
@@ -373,7 +411,22 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario }) => {
                     </button>
                 </div>
 
-                {modo === 'masmorras' && estimativa && (
+                <SeletorBuilds
+                    disponiveis={buildsDisp}
+                    selecionadas={buildsSel}
+                    setSelecionadas={setBuildsSel}
+                    pesos={pesosBuilds}
+                    setPesos={setPesosBuilds}
+                    cenarios={cenariosBuilds}
+                    setCenarios={setCenariosBuilds}
+                    medirPesos={medirPesos}
+                    setMedirPesos={setMedirPesos}
+                    carregando={lendoBuilds}
+                    onLer={lerBuilds}
+                    podeLer={addon.trim().length >= 20}
+                />
+
+                {estimativa && (
                     <div className="mt-3 rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-[11px]">
                         <span className="text-zinc-400">Estimativa: </span>
                         <span className="text-zinc-200 font-mono">
@@ -387,7 +440,7 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario }) => {
                 )}
 
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                    {modo === 'masmorras' && (
+                    {(modo === 'masmorras' || amr.trim().length >= 20) && (
                         <button
                             onClick={estimar}
                             disabled={semAddon || estimando}
@@ -546,6 +599,8 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario }) => {
                             </div>
                         );
                     })}
+
+                    <ResultadoBuilds resultado={resultado} />
 
                     <p className="text-[11px] text-zinc-500 border-t border-zinc-900 pt-3">
                         {resultado.premissa_chance}
