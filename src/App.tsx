@@ -9,6 +9,7 @@ import { AiConsultantDrawer } from './components/AiConsultantDrawer';
 import { BuildsSimulatorTab } from './components/BuildsSimulatorTab';
 import { TopGearPanel } from './components/TopGearPanel';
 import { DroptimizerPanel } from './components/DroptimizerPanel';
+import { MasmorrasPanel } from './components/MasmorrasPanel';
 import { WowItem, ActiveSpec, CombatScenario } from './types/wow';
 import { TooltipProvider } from './context/TooltipContext';
 import { usePersistedState } from './services/persistedState';
@@ -23,6 +24,7 @@ const SUBTABS: Record<Area, SubTab[]> = {
     { id: 'builds', label: 'Builds' },
     { id: 'topgear', label: 'Top Gear' },
     { id: 'droptimizer', label: 'Droptimizer' },
+    { id: 'masmorras', label: 'Masmorras' },
   ],
   explorar: [
     { id: 'itens', label: 'Itens' },
@@ -117,6 +119,9 @@ export default function App() {
           )}
           {area === 'simular' && sub === 'droptimizer' && (
             <DroptimizerPanel scenario={scenario} setScenario={setScenario as (c: string) => void} />
+          )}
+          {area === 'simular' && sub === 'masmorras' && (
+            <MasmorrasPanel scenario={scenario} setScenario={setScenario as (c: string) => void} />
           )}
 
           {area === 'explorar' && sub === 'itens' && (
