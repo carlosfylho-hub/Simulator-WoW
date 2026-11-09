@@ -11,6 +11,7 @@ import { TopGearPanel } from './components/TopGearPanel';
 import { DroptimizerPanel } from './components/DroptimizerPanel';
 import { MasmorrasPanel } from './components/MasmorrasPanel';
 import { WowItem, ActiveSpec, CombatScenario } from './types/wow';
+import { normalizarCenario } from './data/scenarios';
 import { TooltipProvider } from './context/TooltipContext';
 import { usePersistedState } from './services/persistedState';
 import { fetchCatalogItems, fetchIconMap } from './services/catalogService';
@@ -42,6 +43,16 @@ export default function App() {
   const [scenario, setScenario] = usePersistedState<CombatScenario>('wowsim.cenario', 'patchwerk');
   const [currentSpec, setCurrentSpec] = useState<ActiveSpec>('demonology');
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState<boolean>(false);
+
+  // T14: preferências salvas podem ter cenários legados (raid/cleave_aoe/...).
+  // Normaliza para o equivalente canônico na primeira renderização.
+  useEffect(() => {
+    const normalizado = normalizarCenario(scenario as string);
+    if (normalizado !== (scenario as string)) {
+      setScenario(normalizado as CombatScenario);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const setArea = (nova: Area) => {
     setAreaState(nova);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Flame, Bot } from 'lucide-react';
 import { ActiveSpec, CombatScenario } from '../types/wow';
+import { CENARIOS_PRINCIPAIS, CENARIOS_AVANCADOS, normalizarCenario } from '../data/scenarios';
 
 export type Area = 'simular' | 'explorar' | 'planejar';
 
@@ -28,14 +29,6 @@ const SPECS: { id: ActiveSpec; label: string }[] = [
   { id: 'shadow', label: 'Sacerdote Sombra' },
 ];
 
-const SCENARIOS: { id: CombatScenario; label: string }[] = [
-  { id: 'patchwerk', label: 'Alvo único (Patchwerk)' },
-  { id: 'dungeon_slice', label: 'M+ (Dungeon Slice)' },
-  { id: 'cleave_aoe', label: 'Cleave / AoE' },
-  { id: 'raid', label: 'Raide' },
-  { id: 'delve_rooms', label: 'Delves — salas' },
-  { id: 'delve_boss', label: 'Delves — chefe' },
-];
 
 export const Navbar: React.FC<NavbarProps> = ({
   area,
@@ -97,15 +90,24 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <select
               aria-label="Cenário"
-              value={scenario}
+              value={normalizarCenario(scenario)}
               onChange={(e) => setScenario(e.target.value as CombatScenario)}
               className="hidden lg:block bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-emerald-600"
             >
-              {SCENARIOS.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.label}
-                </option>
-              ))}
+              <optgroup label="Principais">
+                {CENARIOS_PRINCIPAIS.map((s) => (
+                  <option key={s.valor} value={s.valor}>
+                    {s.rotulo}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Mais cenários">
+                {CENARIOS_AVANCADOS.map((s) => (
+                  <option key={s.valor} value={s.valor}>
+                    {s.rotulo}
+                  </option>
+                ))}
+              </optgroup>
             </select>
 
             <button

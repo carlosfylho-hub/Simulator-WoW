@@ -146,23 +146,48 @@ export interface OpcaoCenario {
   descricao: string;
 }
 
-/** Opções exibidas nos painéis Droptimizer/Top Gear (estilo Raidbots). */
-export const CENARIOS_DROPDOWN: OpcaoCenario[] = [
-  'patchwerk',
-  'dungeon_slice',
+function _opcoes(valores: string[]): OpcaoCenario[] {
+  return valores.map((valor) => ({
+    valor,
+    rotulo: ROTULO_CENARIO[valor],
+    descricao: DESCRICAO_CENARIO[valor],
+  }));
+}
+
+/** T14: no topo, só o essencial. O resto fica em "Mais cenários". */
+export const CENARIOS_PRINCIPAIS: OpcaoCenario[] = _opcoes([
+  'dungeon_slice', // M+ e Delves
+  'patchwerk', // Chefe único
+]);
+
+export const CENARIOS_AVANCADOS: OpcaoCenario[] = _opcoes([
   'hectic_add_cleave',
   'light_movement',
   'heavy_movement',
   'casting_patchwerk',
   'cleave_add',
   'helter_skelter',
-  'raid',
-  'mplus',
-  'cleave_aoe',
-  'delve_rooms',
   'delve_boss',
-].map((valor) => ({
-  valor,
-  rotulo: ROTULO_CENARIO[valor],
-  descricao: DESCRICAO_CENARIO[valor],
-}));
+]);
+
+/** Opções exibidas nos painéis (principais + avançados; sem raid/cleave_aoe). */
+export const CENARIOS_DROPDOWN: OpcaoCenario[] = [
+  ...CENARIOS_PRINCIPAIS,
+  ...CENARIOS_AVANCADOS,
+];
+
+/**
+ * Mapeia valores antigos/legados para o equivalente canônico, para continuar
+ * aceitando preferências salvas e chamadas antigas da API (T14).
+ */
+export function normalizarCenario(valor: string | null | undefined): string {
+  const v = (valor || 'patchwerk').trim();
+  const mapa: Record<string, string> = {
+    raid: 'dungeon_slice',
+    mplus: 'dungeon_slice',
+    cleave_aoe: 'dungeon_slice',
+    delve_rooms: 'dungeon_slice',
+    delve_boss: 'patchwerk',
+  };
+  return mapa[v] ?? v;
+}
