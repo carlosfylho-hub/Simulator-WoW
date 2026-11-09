@@ -45,6 +45,9 @@ const PADRAO: Omit<Config, 'scenario'> = {
     pesos: {},
     cenarios: {},
     medirPesos: false,
+    forcarTier: false,
+    trilhaTier: 'mito',
+    rankTier: 6,
 };
 
 /**
@@ -214,6 +217,9 @@ export const MasmorrasPanel: React.FC<Props> = ({ scenario, setScenario, abrirJo
                 pesos_loadouts: Object.fromEntries(buildsAtivas.map((n) => [n, config.pesos[n] ?? 1])),
                 cenarios_loadouts: Object.fromEntries(buildsAtivas.map((n, i) => [n, cenariosDasBuilds[i]])),
                 medir_pesos: config.medirPesos,
+                forcar_tier: config.modo === 'masmorras' && buildsAtivas.length === 0 && config.forcarTier,
+                trilha_tier: config.trilhaTier,
+                rank_tier: config.rankTier,
             });
             setModoResultado(config.modo);
             setJob(await consultarRanking(criado.id));

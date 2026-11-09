@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react';
 import { MasmorraRanking, RankingResult } from '../../services/masmorrasService';
 import { Cartao, Delta, Etiqueta, ItemIcone, Segmentado, formatarDps } from '../../ui';
 import { nomeItem, slotPt, textoUpgrade } from './rotulos';
+import { PlanoTierCartao } from './PlanoTier';
 
 const TOPO = 5;
 
@@ -70,7 +71,14 @@ const LinhaMasmorra: React.FC<{ masmorra: MasmorraRanking; posicao: number; aber
                 <span className={`num text-sm ${posicao === 1 ? 'text-destaque font-semibold' : 'text-texto-3'}`}>
                     {posicao}
                 </span>
-                <span className="truncate text-sm font-medium text-texto">{masmorra.masmorra}</span>
+                <span className="truncate text-sm font-medium text-texto">
+                    {masmorra.masmorra}
+                    {!!masmorra.pecas_tier && (
+                        <span className="ml-2 rounded bg-destaque/15 px-1.5 py-0.5 text-xs font-normal text-destaque">
+                            {masmorra.pecas_tier} peça(s) do plano de tier
+                        </span>
+                    )}
+                </span>
                 <span className="text-xs text-texto-2">
                     <span className="num text-texto">{masmorra.servem}</span> de{' '}
                     <span className="num">{masmorra.elegiveis}</span> servem ·{' '}
@@ -101,9 +109,10 @@ export const ResultadoRanking: React.FC<Props> = ({ resultado, modo, selo }) => 
     const lista = useMemo(() => {
         const arr = [...resultado.masmorras];
         arr.sort((a, b) =>
-            ordem === 'maior'
+            (b.pecas_tier ?? 0) - (a.pecas_tier ?? 0) ||
+            (ordem === 'maior'
                 ? b.maior_pct - a.maior_pct || b.servem - a.servem
-                : b.servem - a.servem || b.maior_pct - a.maior_pct,
+                : b.servem - a.servem || b.maior_pct - a.maior_pct),
         );
         return arr;
     }, [resultado, ordem]);
@@ -114,6 +123,8 @@ export const ResultadoRanking: React.FC<Props> = ({ resultado, modo, selo }) => 
     const builds = resultado.builds?.length ?? 0;
 
     return (
+        <>
+        {resultado.tier && <PlanoTierCartao plano={resultado.tier} />}
         <Cartao
             titulo={cofre ? 'Opções do Grande Cofre' : 'Rolar o bônus em'}
             acao={
@@ -199,5 +210,6 @@ export const ResultadoRanking: React.FC<Props> = ({ resultado, modo, selo }) => 
                 </button>
             )}
         </Cartao>
+        </>
     );
 };

@@ -19,6 +19,9 @@ export interface Config {
     pesos: Record<string, number>;
     cenarios: Record<string, string>;
     medirPesos: boolean;
+    forcarTier: boolean;
+    trilhaTier: 'heroi' | 'mito';
+    rankTier: number;
 }
 
 /** Limites aceitos pelo servidor (masmorras/modelos.py) e valores recomendados. */
@@ -185,6 +188,60 @@ export const ConfiguracaoRanking: React.FC<Props> = ({
                             Forjar <span className="num text-texto-3">(nível {ILVL_FORJA[config.trilha]})</span>
                         </label>
                         <Ajuda>{config.rank === 6 ? 'Só vale no 6/6.' : 'Disponível só no rank 6/6.'}</Ajuda>
+                    </Campo>
+                </div>
+            )}
+
+            {config.modo === 'masmorras' && (
+                <div className="mb-4 grid gap-4 border-t border-borda pt-3 sm:grid-cols-3">
+                    <Campo
+                        rotulo="Forçar tier set"
+                        dica="Igual ao 'Force Tier Set' do AMR: o simulador monta um plano para você chegar a 4 peças de tier (bônus de 2 e 4 peças), escolhendo quais itens de masmorra levar ao Catalisador. Mede cada combinação inteira no simc e coloca no topo as masmorras que dão as peças do melhor plano."
+                    >
+                        <label className="flex h-9 items-center gap-2 text-sm text-texto">
+                            <input
+                                type="checkbox"
+                                checked={config.forcarTier}
+                                disabled={marcadas.length > 0}
+                                onChange={(e) => mudar({ forcarTier: e.target.checked })}
+                                className="h-4 w-4 accent-destaque"
+                            />
+                            Sempre buscar 4 peças
+                        </label>
+                        <Ajuda>
+                            {marcadas.length > 0
+                                ? 'Só funciona sem builds marcadas (desmarque em "Builds").'
+                                : 'Útil para personagens secundários sem o set completo.'}
+                        </Ajuda>
+                    </Campo>
+                    <Campo
+                        rotulo="Trilha das peças de tier"
+                        dica="Nível em que as peças que faltam vão ficar depois de catalisadas. Herói se você vai catalisar itens de chaves mais baixas (ex.: um secundário); Mítico se já pega itens de chave alta. Pode ser diferente da trilha dos outros itens."
+                    >
+                        <Segmentado<'heroi' | 'mito'>
+                            rotuloAria="Trilha do tier"
+                            opcoes={[
+                                { valor: 'heroi', rotulo: 'Herói' },
+                                { valor: 'mito', rotulo: 'Mítico' },
+                            ]}
+                            valor={config.trilhaTier}
+                            onChange={(trilhaTier) => config.forcarTier && mudar({ trilhaTier })}
+                        />
+                        <Ajuda>{config.forcarTier ? 'Trilha das peças catalisadas.' : 'Marque "Forçar tier set" para usar.'}</Ajuda>
+                    </Campo>
+                    <Campo rotulo="Rank das peças de tier" dica="Em que ponto da trilha as peças de tier são medidas. 6/6 mostra o potencial máximo.">
+                        <Selecao
+                            value={config.rankTier}
+                            disabled={!config.forcarTier}
+                            onChange={(e) => mudar({ rankTier: Number(e.target.value) })}
+                        >
+                            {ESCADA[config.trilhaTier].map((ilvl, i) => (
+                                <option key={i} value={i + 1}>
+                                    {i + 1}/6 · nível {ilvl}
+                                </option>
+                            ))}
+                        </Selecao>
+                        <Ajuda>Nível com que o tier é medido.</Ajuda>
                     </Campo>
                 </div>
             )}

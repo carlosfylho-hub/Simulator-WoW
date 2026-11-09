@@ -37,6 +37,8 @@ export interface MasmorraRanking {
     catalisar: number;
     explicacao: string;
     itens: ItemRanking[];
+    /** T23: quantas peças do plano de tier saem desta masmorra. */
+    pecas_tier?: number;
 }
 
 export interface TrocaBuild {
@@ -161,6 +163,37 @@ export interface RankingResult {
     pawn_mistura: string | null;
     pawn_iguais: string[][];
     craft?: CraftResultado | null;
+    tier?: PlanoTier | null;
+}
+
+export interface PecaTier {
+    slot: string;
+    item_tier: number;
+    nome_tier: string | null;
+    fonte_item_id: number;
+    fonte_nome: string | null;
+    masmorra: string;
+}
+
+export interface CombinacaoTier {
+    slots: string[];
+    pecas: PecaTier[];
+    conversoes: number;
+    ganho_pct: number;
+    limiar_pct: number;
+}
+
+/** T23 — plano para fechar 4 peças de tier (masmorras/tier.py). */
+export interface PlanoTier {
+    disponivel: boolean;
+    nivel?: string;
+    ja_equipadas?: string[];
+    faltam?: number;
+    combinacoes?: CombinacaoTier[];
+    melhor?: CombinacaoTier | null;
+    masmorras_do_plano?: Record<string, number>;
+    sem_fonte?: string[];
+    motivo?: string;
 }
 
 export interface RankingProgresso {
@@ -198,6 +231,9 @@ export interface RankingRequest {
     pesos_loadouts?: Record<string, number>;
     cenarios_loadouts?: Record<string, string>;
     medir_pesos?: boolean;
+    forcar_tier?: boolean;
+    trilha_tier?: 'heroi' | 'mito';
+    rank_tier?: number;
 }
 
 export interface RankingEstimativa {
