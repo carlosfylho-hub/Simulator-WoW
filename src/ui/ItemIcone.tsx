@@ -1,6 +1,7 @@
 import React from 'react';
 import { useItemTooltip } from '../context/TooltipContext';
 import { getItemById, getItemIconUrl } from '../data/items';
+import type { ConjuntoItem } from '../services/masmorrasService';
 
 interface Props {
     itemId: number | null | undefined;
@@ -17,6 +18,10 @@ interface Props {
     degrau?: string | null;
     /** Embelezamento que já vem no item: liga a seção "Embelezado" com o texto. */
     efeitoEmbutido?: string | null;
+    /** "Equipar/Uso" do próprio item (berloque, colar, arma...). */
+    efeito?: string | null;
+    /** Bônus de conjunto (tier ou conjunto craftado). */
+    conjunto?: ConjuntoItem | null;
     tamanho?: number;
 }
 
@@ -32,6 +37,8 @@ export const ItemIcone: React.FC<Props> = ({
     roleTag,
     degrau,
     efeitoEmbutido,
+    efeito,
+    conjunto,
     tamanho = 24,
 }) => {
     const { showTooltip, hideTooltip } = useItemTooltip();
@@ -52,6 +59,8 @@ export const ItemIcone: React.FC<Props> = ({
                     sourceLocation: fonte ?? undefined,
                     roleTag: roleTag ?? undefined,
                     trackLabel: degrau ?? undefined,
+                    effect: (efeitoEmbutido ? undefined : efeito) ?? undefined,
+                    setBonus: conjunto ?? undefined,
                     ...(efeitoEmbutido
                         ? { embellished: true, embellishmentName: 'do próprio item (vem ao craftar)', embellishmentDescription: efeitoEmbutido }
                         : {}),

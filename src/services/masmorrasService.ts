@@ -17,9 +17,18 @@ export interface ItemRanking {
     aviso: string | null;
     degrau?: string | null;
     upgrade?: Upgrade | null;
+    efeito?: string | null;
+    conjunto?: ConjuntoItem | null;
 }
 
 /** Brasões para levar o item ao 6/6 da trilha (custo cheio, sem desconto de slot). */
+/** Bônus de conjunto do item (tooltip do Wowhead). No tier, um bônus por especialização. */
+export interface ConjuntoItem {
+    nome: string | null;
+    total: number | null;
+    bonus: { pecas: number; efeito: string; spec?: string }[];
+}
+
 export interface Upgrade {
     moeda: string;
     brasoes: number;
@@ -56,6 +65,8 @@ export interface TrocaBuild {
     ganho_pct: number;
     icone: string | null;
     stats?: Record<string, number> | null;
+    efeito?: string | null;
+    conjunto?: ConjuntoItem | null;
     degrau?: string | null;
     upgrade?: Upgrade | null;
 }
@@ -82,6 +93,8 @@ export interface LinhaMatriz {
     slot: string;
     icone: string | null;
     stats?: Record<string, number> | null;
+    efeito?: string | null;
+    conjunto?: ConjuntoItem | null;
     deltas: Record<string, number>;
     limiares: Record<string, number>;
     etiquetas: Record<string, Etiqueta>;
@@ -110,11 +123,12 @@ export interface CraftPeca {
     ilvl: number;
     icone?: string | null;
     stats?: Record<string, number> | null;
+    conjunto?: ConjuntoItem | null;
 }
 
 export interface DuplaCraft {
     slots: string[];
-    pecas: { slot: string; item_id: number; nome_pt: string | null; nome_en: string | null; missiva: string; embutido: boolean; ilvl: number; centelhas: number; icone?: string | null; stats?: Record<string, number> | null; efeito?: string | null }[];
+    pecas: { slot: string; item_id: number; nome_pt: string | null; nome_en: string | null; missiva: string; embutido: boolean; ilvl: number; centelhas: number; icone?: string | null; stats?: Record<string, number> | null; efeito?: string | null; conjunto?: ConjuntoItem | null }[];
     dps: number;
     ganho_pct: number;
     limiar_pct: number;
@@ -200,6 +214,7 @@ export interface PecaTier {
     fonte_item_id: number;
     fonte_nome: string | null;
     masmorra: string;
+    conjunto?: ConjuntoItem | null;
 }
 
 export interface CombinacaoTier {

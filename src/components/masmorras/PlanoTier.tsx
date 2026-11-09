@@ -40,7 +40,7 @@ export const PlanoTierCartao: React.FC<{ plano: PlanoTier }> = ({ plano }) => {
                                 className="grid grid-cols-[6rem_minmax(0,1fr)_minmax(0,1fr)] items-center gap-3 rounded-lg px-2 py-1.5 text-sm hover:bg-superficie-2"
                             >
                                 <span className="text-xs text-texto-3">{slotPt(p.slot)}</span>
-                                <ItemIcone itemId={p.fonte_item_id} nome={p.fonte_nome ?? `Item ${p.fonte_item_id}`} slot={slotPt(p.slot)} degrau={plano.nivel} />
+                                <ItemIcone itemId={p.fonte_item_id} nome={p.fonte_nome ?? `Item ${p.fonte_item_id}`} slot={slotPt(p.slot)} degrau={plano.nivel} conjunto={p.conjunto} />
                                 <span className="truncate text-xs text-texto-2">
                                     {p.masmorra} → catalisar em{' '}
                                     <span className="text-texto">{p.nome_tier ?? `item ${p.item_tier}`}</span>

@@ -16,6 +16,8 @@ export interface FullItemTooltip {
   stamina?: number;
   secondaryStats: Array<{ name: string; value: number; key: string }>;
   effect?: string;
+  /** Bônus de conjunto (tier/craft), já filtrado pela especialização do perfil. */
+  setBonus?: { nome: string | null; total: number | null; bonus: { pecas: number; efeito: string; spec?: string }[] };
   embellished?: boolean;
   embellishmentName?: string;
   embellishmentDescription?: string;
@@ -1008,6 +1010,20 @@ const OFFICIAL_1215_DATABASE: Record<number, Partial<FullItemTooltip>> = {
  * Synchronous Real-time Tooltip Builder:
  * Instantly resolves item tooltips without microtask delay.
  */
+// Especialização do perfil em PT-BR ("Equilíbrio"), para mostrar só o bônus de tier dela.
+let specAtualPt: string | null = null;
+export function definirSpecAtual(nomePt: string | null): void {
+  specAtualPt = nomePt;
+}
+
+function filtrarBonusPorSpec(c: FullItemTooltip['setBonus']): FullItemTooltip['setBonus'] {
+  if (!c || !c.bonus?.length) return undefined;
+  const temSpec = c.bonus.some((b) => b.spec);
+  if (!temSpec || !specAtualPt) return c;
+  const daSpec = c.bonus.filter((b) => !b.spec || b.spec === specAtualPt);
+  return { ...c, bonus: daSpec.length ? daSpec : c.bonus };
+}
+
 export function getItemTooltipSync(
   itemId: number,
   fallbackOptions?: {
@@ -1027,6 +1043,7 @@ export function getItemTooltipSync(
     embellished?: boolean;
     embellishmentName?: string;
     embellishmentDescription?: string;
+    setBonus?: { nome: string | null; total: number | null; bonus: { pecas: number; efeito: string; spec?: string }[] };
     /** Rótulo do degrau já conhecido (ex.: "Herói qualidade 5", "Mito 2/6"). Prevalece. */
     trackLabel?: string;
     embellishmentRecommendation?: string;
@@ -1136,7 +1153,9 @@ export function getItemTooltipSync(
     primaryStat,
     stamina,
     secondaryStats,
-    effect: official?.effect ?? fallbackOptions?.effect ?? catalogItem?.effect,
+    // O texto raspado do Wowhead (fallback) é a fonte real; o "oficial" local é escrito à mão.
+    effect: fallbackOptions?.effect ?? official?.effect ?? catalogItem?.effect,
+    setBonus: filtrarBonusPorSpec(fallbackOptions?.setBonus),
     embellished,
     embellishmentName,
     embellishmentDescription,

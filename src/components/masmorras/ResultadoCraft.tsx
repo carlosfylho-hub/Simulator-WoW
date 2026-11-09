@@ -32,6 +32,7 @@ const Dupla: React.FC<{ d: DuplaCraft; nivel: string; destaque?: boolean }> = ({
                         roleTag="Craftado"
                         degrau={nivel}
                         efeitoEmbutido={p.efeito}
+                        conjunto={p.conjunto}
                         tamanho={20}
                     />
                     {p.embutido && <span className="shrink-0 cursor-help text-xs text-aviso" title={p.efeito ?? undefined}>embelezado</span>}
@@ -118,6 +119,7 @@ export const ResultadoCraft: React.FC<{ craft: CraftResultado; selo?: string | n
                                         roleTag="Craftado"
                                         degrau={craft.custo.nivel}
                                         efeitoEmbutido={p.efeito}
+                        conjunto={p.conjunto}
                                         tamanho={20}
                                     />
                                     {p.embutido && <span className="shrink-0 cursor-help text-xs text-aviso" title={p.efeito ?? undefined}>embelezado</span>}

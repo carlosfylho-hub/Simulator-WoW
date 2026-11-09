@@ -208,6 +208,21 @@ export const WowItemTooltip: React.FC<Props> = ({ tooltipData, position, pinnedI
         </div>
       )}
 
+      {/* Bônus de conjunto (tier: só o da sua especialização; craft: conjunto craftado) */}
+      {item.setBonus && item.setBonus.bonus.length > 0 && (
+        <div className="py-2 text-[11px] leading-relaxed border-b border-zinc-800/80 space-y-1">
+          <div className="text-[#ffd100] font-bold">
+            {item.setBonus.nome ?? 'Conjunto'}
+            {item.setBonus.total ? ` (${item.setBonus.total} peças)` : ''}
+          </div>
+          {item.setBonus.bonus.map((b, i) => (
+            <div key={i} className="text-[#00ff00]">
+              ({b.pecas}) Conjunto{b.spec ? ` ${b.spec}` : ''}: {b.efeito}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Source Dungeon / Delve / Raid Box (Raidbots UX) */}
       <div className="mt-2.5 p-2 rounded-lg bg-[#141822] border border-[#2b3548] text-[11px] space-y-1">
         <div className="flex items-center space-x-1 text-indigo-300 font-bold">

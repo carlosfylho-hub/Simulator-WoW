@@ -36,7 +36,7 @@ const CartaoBuild: React.FC<{ build: BuildResultado }> = ({ build }) => {
                             <li key={t.slot} className="grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-2 text-sm">
                                 <span className="text-xs text-texto-3">{slotPt(t.slot)}</span>
                                 <span className="flex min-w-0 items-center gap-1">
-                                    <ItemIcone itemId={t.item_id} icone={t.icone} nome={nomeItem(t)} slot={slotPt(t.slot)} degrau={t.degrau} ilvl={t.ilvl} stats={t.stats} tamanho={20} />
+                                    <ItemIcone itemId={t.item_id} icone={t.icone} nome={nomeItem(t)} slot={slotPt(t.slot)} degrau={t.degrau} efeito={t.efeito} conjunto={t.conjunto} ilvl={t.ilvl} stats={t.stats} tamanho={20} />
                                     {t.catalisado && <span className="shrink-0 text-xs text-aviso">catalisar</span>}
                                 </span>
                                 <span className="flex items-center gap-2">
@@ -101,7 +101,7 @@ export const PorBuild: React.FC<{ resultado: RankingResult }> = ({ resultado }) 
                                 <tr key={l.item_id} className="border-t border-borda">
                                     <td className="px-1 py-1.5">
                                         <span className="flex min-w-0 items-center gap-1.5">
-                                            <ItemIcone itemId={l.item_id} icone={l.icone} nome={nomeItem(l)} slot={slotPt(l.slot)} stats={l.stats} tamanho={20} />
+                                            <ItemIcone itemId={l.item_id} icone={l.icone} nome={nomeItem(l)} slot={slotPt(l.slot)} stats={l.stats} efeito={l.efeito} conjunto={l.conjunto} tamanho={20} />
                                             {l.divergente && (
                                                 <span title="Ganha numa build e perde em outra" className="shrink-0">
                                                     <AlertTriangle className="w-4 h-4 text-aviso" />

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { definirSpecAtual } from '../services/itemTooltipService';
 import { carregarImportLocal, carregarImportRemoto, salvarImport } from '../services/simcStorage';
 import {
     assinarAmrLocal,
@@ -139,6 +140,11 @@ export const PerfilProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
     };
 
+    // A tooltip mostra só o bônus de tier da especialização do perfil.
+    useEffect(() => {
+        definirSpecAtual(resumo?.spec ? SPECS[resumo.spec] ?? null : null);
+    }, [resumo?.spec]);
+
     useEffect(() => {
         const t = window.setTimeout(() => void validar(), 800);
         return () => window.clearTimeout(t);
@@ -178,7 +184,14 @@ const CLASSES: Record<string, string> = {
 const SPECS: Record<string, string> = {
     demonology: 'Demonologia', affliction: 'Suplício', destruction: 'Destruição', balance: 'Equilíbrio',
     shadow: 'Sombra', arcane: 'Arcano', fire: 'Fogo', frost: 'Gélido', elemental: 'Elemental',
-    devastation: 'Devastação', augmentation: 'Aprimoramento',
+    devastation: 'Devastação', augmentation: 'Aprimoramento', preservation: 'Preservação',
+    feral: 'Feral', guardian: 'Guardião', restoration: 'Restauração', holy: 'Sagrado',
+    discipline: 'Disciplina', protection: 'Proteção', retribution: 'Retribuição', arms: 'Armas',
+    fury: 'Fúria', beast_mastery: 'Domínio das Feras', marksmanship: 'Precisão',
+    survival: 'Sobrevivência', assassination: 'Assassinato', outlaw: 'Fora da Lei',
+    subtlety: 'Subterfúgio', enhancement: 'Aperfeiçoamento', brewmaster: 'Mestre Cervejeiro',
+    mistweaver: 'Tecelão da Névoa', windwalker: 'Andarilho do Vento', blood: 'Sangue',
+    unholy: 'Profano', havoc: 'Devastação', vengeance: 'Vingança', devourer: 'Devorador',
 };
 
 /** "Bruxo Demonologia" a partir de warlock/demonology (cai no texto cru se não conhecer). */

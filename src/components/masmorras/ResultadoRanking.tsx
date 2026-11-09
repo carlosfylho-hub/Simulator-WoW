@@ -20,6 +20,8 @@ const ItensDaMasmorra: React.FC<{ masmorra: MasmorraRanking }> = ({ masmorra }) 
                     nome={nomeItem(item)}
                     slot={slotPt(item.slot)}
                     degrau={item.degrau}
+                    efeito={item.efeito}
+                    conjunto={item.conjunto}
                     ilvl={item.ilvl}
                     stats={item.stats}
                 />
